@@ -1,10 +1,23 @@
 # bomcheckgui
 
-## What it does
+## **WHAT THE PROGRAM DOES**
 
 Bomcheckgui is a graphical user interface (gui) for the bomcheck program.
 It compares bills of materials (BOMs).  Look at the bomcheck program
 for more information.
+
+## **HOW TO INSTALL**
+Assuming that you already have Python on your machine, use the package
+manager software [pip](https://en.wikipedia.org/wiki/Pip_(package_manager))
+that comes with Python:
+
+`pip install bomcheckgui`
+
+## **HOW TO RUN BOMCHECKGUI**
+
+To open up the gui, from the command line, or via a link you set up, run:
+
+`bomcheckgui`
 
 ## How it works
 

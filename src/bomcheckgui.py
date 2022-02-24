@@ -10,10 +10,13 @@ A graphical user interface for the bomcheck.py program.
 """
 
 import sys
+sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 import bomcheck
 import webbrowser
 import os.path
 import ast
+
+sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 
 try:
     from PySide2.QtCore import Qt
@@ -146,7 +149,7 @@ class MainWindow(QMainWindow):
                 file.truncate()
             self.folder = self.dbdic['folder']
             os.system(cmdtxt(self.folder))
-        except Exception as e:  # it an error occured, moset likely and AttributeError
+        except Exception as e:  # it an error occured, most likely and AttributeError
             print("error2 at MainWindow/openfolder", e)
             print("error2 at MainWindow/openfolder... possibly due to no data in drag&drop zone")
             err = True
@@ -190,7 +193,7 @@ class MainWindow(QMainWindow):
         defaultfname = self.getdefaultfname()
         if ask:
             standardflow = False
-            # AskDialog sets standardflow, a global variable, to True if user hits its the OK button
+            # AskDialog sets standardflow, a global variable, to True if user hits the OK button
             dlg = AskDialog(defaultfname)  # call up the dialog box to add a new record.
             dlg.exec_()
             try: 
@@ -225,7 +228,8 @@ class MainWindow(QMainWindow):
         
         if standardflow == True:
             msg = bomcheck.bomcheck(files, d=self.drop_chkbox.isChecked(), 
-                                    c=self.across_chkbox.isChecked(), dbdic = self.dbdic,
+                                    b=self.across_chkbox.isChecked(), 
+                                    dbdic = self.dbdic,
                                     x=True, l=True)
         else:
             msg = []         
@@ -358,7 +362,7 @@ class SettingsDialog(QDialog):
 
         self.setWindowTitle('Settings')
         self.setFixedWidth(350)
-        self.setFixedHeight(350)  # was 150
+        self.setFixedHeight(400)  # was 150
 
         layout = QVBoxLayout()
         
@@ -440,7 +444,18 @@ class SettingsDialog(QDialog):
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
         
+        ## added 2/23/22
+        cfgpathname_label = QLabel()
+        cfgpathname_label.setText('pathname of bomcheck.cfg file')
+        layout.addWidget(cfgpathname_label)
         
+        self.cfgpathname_input = QTextEdit()
+        self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg')
+        if 'cfgpathname' in self.dbdic:
+            self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
+        layout.addWidget(self.cfgpathname_input)
+        ##
+     
         ############################################################
         authorname_label = QLabel()
         authorname_label.setText('Author: ')
@@ -489,6 +504,8 @@ class SettingsDialog(QDialog):
                 self.dbdic['udrop'] = drp
                 excep = self.exceptions_input.toPlainText()
                 self.dbdic['uexceptions'] = excep
+                cfgpn = self.cfgpathname_input.toPlainText()
+                self.dbdic['cfgpathname'] = cfgpn
                 
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()
@@ -504,7 +521,7 @@ class SettingsDialog(QDialog):
                 file.seek(0)
                 file.write(str(self.dbdic))
                 file.truncate()
-        except Exception as e:  # it an error occured, moset likely and AttributeError
+        except Exception as e:  # it an error occured, most likely and AttributeError
             msg =  "error9 at SettingsDialog.  " + str(e)
             print(msg)
             message(msg, 'Error', msgtype='Warning', showButtons=False)
@@ -732,7 +749,8 @@ def get_author(forPlaceHolder=False):
         message(msg, 'Error', msgtype='Warning', showButtons=False)
     return author
 
-############################################################      
+############################################################   
+
             
 app = QApplication(sys.argv)
 

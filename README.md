@@ -3,7 +3,7 @@
 ## **WHAT THE PROGRAM DOES**
 
 Bomcheckgui is a graphical user interface (gui) for the bomcheck program.
-It compares bills of materials (BOMs).  Look at the bomcheck program
+It compares bills of materials (BOMs). Look at the bomcheck program
 for more information.
 
 ## **HOW TO INSTALL**

@@ -1,16 +1,5 @@
-
 '''
-Intial structure before creating a package:
-
-bomcheck/
-    src/
-        __init__.py
-        bomcheckgui.py
-    LICENSE.txt
-    README.md
-    setup.py
-
-Where __init__.py is a text file that is empty.
+setup.py for bomcheckgui.py
 '''
 
 from setuptools import setup
@@ -20,7 +9,8 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='bomcheckgui',   # name people will use to pip install
-    version='1.7.6',
+    python_requires='>=3.0',
+    version='1.7.8',
     description='gui for bomcheck',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -35,6 +25,14 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Operating System :: OS Independent',],
     install_requires = ['bomcheck>=1.8', 'pyside2>=5.15'],
+    data_files = [('icons', ['icons/about.png', 'icons/bomcheck.ico',
+                             'icons/bomcheck.png', 'icons/clear.png',
+                             'icons/folder.png', 'icons/question-mark.png',
+                             'icons/quit.png', 'icons/settings.png', 
+                             'icons/welcomemat.png']),
+                  ('help_files', ['help_files/bomcheckgui_help.html', 
+                                  'help_files/bomcheck_help.html', 
+                                  'help_files/bomcheck_troubleshoot.html'])],
     url='https://github.com/kcarlton55/bomcheckgui',
     author='Kenneth Edward Carlton',
     author_email='kencarlton55@gmail.com',

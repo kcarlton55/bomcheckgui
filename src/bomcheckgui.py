@@ -34,7 +34,7 @@ except ModuleNotFoundError:
     from PyQt5.QtGui import QIcon, QKeySequence, QPainter, QFont, QColor, QPixmap
     print('\nModule PySide2 not found.  Standby PyQt5 used instead.')
 
-__version__ = '1.7.6'
+__version__ = '1.7.8'
 __author__ = 'Kenneth E. Carlton'
 printStrs = []
 

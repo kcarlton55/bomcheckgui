@@ -15,6 +15,7 @@ import bomcheck
 import webbrowser
 import os.path
 import ast
+import qtawesome as qta
 
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 
@@ -43,7 +44,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.setWindowIcon(QIcon('icons/bomcheck.png'))
+        self.setWindowIcon(qta.icon("fa5s.check", color="#228B22"))
         
         try:
             self.configdb = get_configfn()        
@@ -72,17 +73,17 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
         
-        btn_ac_execute = QAction(QIcon('icons/bomcheck.png'), 'Execute', self)  
+        btn_ac_execute = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)   
         btn_ac_execute.triggered.connect(self.execute)
         btn_ac_execute.setStatusTip('Do a bomcheck of the files listed in the drag-drop zone.')
         toolbar.addAction(btn_ac_execute)
         
-        btn_ac_clear = QAction(QIcon('icons/clear.png'), 'Clear', self) 
+        btn_ac_clear = QAction(qta.icon("mdi.wiper", color="#228B22"), 'Clear', self) 
         btn_ac_clear.triggered.connect(self.clear)
         btn_ac_clear.setStatusTip('Clear the drag-drop zone of data.')
         toolbar.addAction(btn_ac_clear)
         
-        btn_ac_folder = QAction(QIcon('icons/folder.png'), "Open the folder", self) 
+        btn_ac_folder = QAction(qta.icon("ei.folder-open", color="#228B22"), "Open the folder", self) 
         btn_ac_folder.triggered.connect(self.openfolder)
         btn_ac_folder.setStatusTip('Open the the most recently active BOM folder.')
         toolbar.addAction(btn_ac_folder)
@@ -105,25 +106,25 @@ class MainWindow(QMainWindow):
         self.across_chkbox.setStatusTip('Break up results across multiple sheets within the output Excel file.')
         toolbar.addWidget(self.across_chkbox)
         
-        execute_action = QAction(QIcon('icons/bomcheck.png'), 'Execute', self)
+        execute_action = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)
         execute_action.triggered.connect(self.execute)
         file_menu.addAction(execute_action)
         
-        settings_action = QAction(QIcon('icons/settings.png'), 'Settings', self)
+        settings_action = QAction(qta.icon("fa.gear", color="#228B22"), 'Settings', self)
         settings_action.triggered.connect(self.settings)
         file_menu.addAction(settings_action)
         
-        quit_action = QAction(QIcon('icons/quit.png'), '&Quit', self)
+        quit_action = QAction(qta.icon("mdi.location-exit", color="#CC0000"), '&Quit', self)
         quit_action.setShortcut(QKeySequence.Quit)
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
         
-        help_action = QAction(QIcon('icons/question-mark.png'), '&Help', self)
+        help_action = QAction(qta.icon("fa5s.question", color="#228B22"), '&Help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
         
-        about_action = QAction(QIcon('icons/about.png'), '&About', self)
+        about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
         help_menu.addAction(about_action)
         
@@ -549,11 +550,10 @@ class AboutDialog(QDialog):
         self.setWindowTitle('About')
 
         labelpic = QLabel()
-        pixmap = QPixmap('icons/welcomemat.png')
-        labelpic.setPixmap(pixmap)
-        #labelpic.setFixedHeight(150)
+        #pixmap = QPixmap('icons/welcomemat.png')
+        #labelpic.setPixmap(pixmap)
 
-        layout.addWidget(labelpic)
+        #layout.addWidget(labelpic)
         layout.addWidget(QLabel('bomcheckgui version: ' + __version__ + '\n' +
                                 'bomcheck version: ' + bomcheck.get_version() + '\n'
                                 'A program to commpare BOMs\n' +

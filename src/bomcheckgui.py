@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     from PyQt5.QtGui import QIcon, QKeySequence, QPainter, QFont, QColor, QPixmap
     print('\nModule PySide2 not found.  Standby PyQt5 used instead.')
 
-__version__ = '1.7.8'
+__version__ = '1.7.9'
 __author__ = 'Kenneth E. Carlton'
 printStrs = []
 
@@ -119,10 +119,18 @@ class MainWindow(QMainWindow):
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
         
-        help_action = QAction(qta.icon("fa5s.question", color="#228B22"), '&Help', self)
+        help_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'bomcheck_help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
+        
+        helpgui_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'bomcheckgui help', self)
+        helpgui_action.triggered.connect(self._helpgui)
+        help_menu.addAction(helpgui_action)
+        
+        helptrb_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'Troubleshoot', self)
+        helptrb_action.triggered.connect(self._helptroubleshoot)
+        help_menu.addAction(helptrb_action)
         
         about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
@@ -260,8 +268,14 @@ class MainWindow(QMainWindow):
         self.lstbox_view.clear()
     
     def _help(self):
-        webbrowser.open(os.path.join('help_files', 'bomcheckgui_help.html'))
-     
+        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_help.html')
+        
+    def _helpgui(self):
+        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheckgui_help.html')
+        
+    def _helptroubleshoot(self):
+        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_troubleshoot.html')
+        
     def about(self):
         dlg = AboutDialog()
         dlg.exec_()

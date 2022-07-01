@@ -35,7 +35,7 @@ except ModuleNotFoundError:
     from PyQt5.QtGui import QIcon, QKeySequence, QPainter, QFont, QColor, QPixmap
     print('\nModule PySide2 not found.  Standby PyQt5 used instead.')
 
-__version__ = '1.7.9'
+__version__ = '1.7.10'
 __author__ = 'Kenneth E. Carlton'
 printStrs = []
 
@@ -376,8 +376,8 @@ class SettingsDialog(QDialog):
         super(SettingsDialog, self).__init__()
 
         self.setWindowTitle('Settings')
-        self.setFixedWidth(350)
-        self.setFixedHeight(400)  # was 150
+        self.setFixedWidth(450)
+        self.setFixedHeight(500)  # was 150
 
         layout = QVBoxLayout()
         

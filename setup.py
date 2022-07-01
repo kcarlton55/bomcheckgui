@@ -1,4 +1,4 @@
-'''
+pi'''
 setup.py for bomcheckgui.py
 '''
 
@@ -10,7 +10,7 @@ with open('README.md', 'r') as fh:
 setup(
     name='bomcheckgui',   # name people will use to pip install
     python_requires='>=3.0',
-    version='1.7.9',
+    version='1.7.10',
     description='gui for bomcheck',
     long_description=long_description,
     long_description_content_type='text/markdown',

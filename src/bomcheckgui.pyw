@@ -39,7 +39,7 @@ except ModuleNotFoundError:
     print('\nModule PyQt5 not found.  Standby PySide2 used instead.')
 
 
-__version__ = '1.7.11'
+__version__ = '1.7.12'
 __author__ = 'Kenneth E. Carlton'
 printStrs = []
 

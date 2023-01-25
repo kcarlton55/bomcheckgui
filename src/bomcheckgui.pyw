@@ -9,33 +9,37 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-import sys
-sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
-import bomcheck
-import webbrowser
-import os.path
-import ast
-import qtawesome as qta
 
+import ast
+import sys
+import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
+sys.path.insert(0, '/media/sf_shared/projects/bomcheckgui/src')
+import bomcheck
+import df_viewer
+
+import qtawesome as qta
+import webbrowser
 
 try:
+    from PyQt5.QtCore import Qt
+    from PyQt5.QtGui import QColor,QFont, QIcon, QKeySequence, QPainter,  QPixmap
+    from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolBar, QAction,
+                                 QStatusBar, QListWidget, QLabel, QCheckBox, QComboBox,
+                                 QDialog, QVBoxLayout, QDialogButtonBox, QHBoxLayout,
+                                 QMessageBox, QLineEdit, QPushButton, QTextEdit)
+
+except ModuleNotFoundError:
     from PySide2.QtCore import Qt
     from PySide2.QtWidgets import (QApplication, QMainWindow, QToolBar, QAction,
                                  QStatusBar, QListWidget, QLabel, QCheckBox, QComboBox,
-                                 QDialog, QVBoxLayout, QDialogButtonBox, QHBoxLayout, 
+                                 QDialog, QVBoxLayout, QDialogButtonBox, QHBoxLayout,
                                  QMessageBox, QLineEdit, QPushButton, QTextEdit)
     from PySide2.QtGui import QIcon, QKeySequence, QPainter, QFont, QColor, QPixmap
-except ModuleNotFoundError:
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtWidgets import (QApplication, QMainWindow, QToolBar, QAction,
-                                 QStatusBar, QListWidget, QLabel, QCheckBox, QComboBox,
-                                 QDialog, QVBoxLayout, QDialogButtonBox, QHBoxLayout, 
-                                 QMessageBox, QLineEdit, QPushButton, QTextEdit)
-    from PyQt5.QtGui import QIcon, QKeySequence, QPainter, QFont, QColor, QPixmap
-    print('\nModule PySide2 not found.  Standby PyQt5 used instead.')
+    print('\nModule PyQt5 not found.  Standby PySide2 used instead.')
 
-__version__ = '1.7.10'
+
+__version__ = '1.7.11'
 __author__ = 'Kenneth E. Carlton'
 printStrs = []
 
@@ -45,11 +49,11 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setWindowIcon(qta.icon("fa5s.check", color="#228B22"))
-        
+
         try:
-            self.configdb = get_configfn()        
+            self.configdb = get_configfn()
             with open(self.configdb, 'r') as file:
-                x = file.read()     
+                x = file.read()
             self.dbdic = ast.literal_eval(x)
         except Exception as e:
             msg = ("Error 101:\n\n"
@@ -58,36 +62,36 @@ class MainWindow(QMainWindow):
                    "Otherwise the program will run as normal.\n\n" + str(e))
             msgtitle = 'Warning'
             message(msg, msgtitle, msgtype='Warning', showButtons=False)
-            self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 'ask': False, 
-                          'overwrite': False, 'folder': '', 'file2save2': 'bomcheck'}
+            self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 'ask': False,
+                          'overwrite': True, 'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
-            
+
         self.folder = self.dbdic.get('folder')
-        
+
         file_menu = self.menuBar().addMenu('&File')
         help_menu = self.menuBar().addMenu('&Help')
         self.setWindowTitle('bomcheck')
         self.setMinimumSize(925, 300)
-        
+
         toolbar = QToolBar()
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
-        
-        btn_ac_execute = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)   
+
+        btn_ac_execute = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)
         btn_ac_execute.triggered.connect(self.execute)
         btn_ac_execute.setStatusTip('Do a bomcheck of the files listed in the drag-drop zone.')
         toolbar.addAction(btn_ac_execute)
-        
-        btn_ac_clear = QAction(qta.icon("mdi.wiper", color="#228B22"), 'Clear', self) 
+
+        btn_ac_clear = QAction(qta.icon("mdi.wiper", color="#228B22"), 'Clear', self)
         btn_ac_clear.triggered.connect(self.clear)
         btn_ac_clear.setStatusTip('Clear the drag-drop zone of data.')
         toolbar.addAction(btn_ac_clear)
-        
-        btn_ac_folder = QAction(qta.icon("ei.folder-open", color="#228B22"), "Open the folder", self) 
+
+        btn_ac_folder = QAction(qta.icon("ei.folder-open", color="#228B22"), "Open the folder", self)
         btn_ac_folder.triggered.connect(self.openfolder)
         btn_ac_folder.setStatusTip('Open the the most recently active BOM folder.')
         toolbar.addAction(btn_ac_folder)
-        
+
         empty_label1 = QLabel()
         empty_label1.setText('   ')
         toolbar.addWidget(empty_label1)
@@ -96,61 +100,61 @@ class MainWindow(QMainWindow):
         self.drop_chkbox.setChecked(False)
         self.drop_chkbox.setStatusTip('Ignore pt. nos of SW parts that are in the drop list.  See File>Settings.')
         toolbar.addWidget(self.drop_chkbox)
-        
+
         empty_label1 = QLabel()
         empty_label1.setText('   ')
         toolbar.addWidget(empty_label1)
-        
+
         self.across_chkbox = QCheckBox('Output to multiple sheets')
         self.across_chkbox.setChecked(False)
         self.across_chkbox.setStatusTip('Break up results across multiple sheets within the output Excel file.')
         toolbar.addWidget(self.across_chkbox)
-        
+
         execute_action = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)
         execute_action.triggered.connect(self.execute)
         file_menu.addAction(execute_action)
-        
+
         settings_action = QAction(qta.icon("fa.gear", color="#228B22"), 'Settings', self)
         settings_action.triggered.connect(self.settings)
         file_menu.addAction(settings_action)
-        
+
         quit_action = QAction(qta.icon("mdi.location-exit", color="#CC0000"), '&Quit', self)
         quit_action.setShortcut(QKeySequence.Quit)
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
-        
+
         help_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'bomcheck_help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
-        
+
         helpgui_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'bomcheckgui help', self)
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
-        
+
         helptrb_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'Troubleshoot', self)
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
-        
+
         about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
         help_menu.addAction(about_action)
-        
+
         self.statusbar = QStatusBar()
         self.setStatusBar(self.statusbar)
-        
+
         self.lstbox_view = ListboxWidget(self)
         self.lstbox_view.setWordWrap(True)
         self.setCentralWidget(self.lstbox_view)
-        
+
     def openfolder(self):
         ''' Open the folder determined by variable "self.folder"'''
-                
+
         err = False
         try:   # get BOM folder name from 1st item in drag/drop list
             self.folder = os.path.dirname(self.lstbox_view.item(0).text())
             with open(self.configdb, 'r+') as file:
-                x = file.read() 
+                x = file.read()
                 self.dbdic = ast.literal_eval(x)
                 self.dbdic['folder'] = self.folder
                 file.seek(0)
@@ -162,11 +166,11 @@ class MainWindow(QMainWindow):
             print("error2 at MainWindow/openfolder", e)
             print("error2 at MainWindow/openfolder... possibly due to no data in drag&drop zone")
             err = True
-            
-        if err:    
-            try: 
+
+        if err:
+            try:
                 with open(self.configdb, 'r') as file:
-                    x = file.read()     
+                    x = file.read()
                     self.dbdic = ast.literal_eval(x)
                 self.folder = self.dbdic.get('folder', '')
                 if self.folder:
@@ -179,12 +183,12 @@ class MainWindow(QMainWindow):
                     message(msg, msgtitle, msgtype='Information')
             except Exception as e:  # it an error occured, moset likely and AttributeError
                 print("Error 103 at MainWindow/openfolder", e)
-            
+
     def execute(self):
         global printStrs, standardflow
-        
-        try: 
-            with open(self.configdb, 'r+') as file:   
+
+        try:
+            with open(self.configdb, 'r+') as file:
                 x = file.read()
                 self.dbdic = ast.literal_eval(x)
                 try:
@@ -197,7 +201,7 @@ class MainWindow(QMainWindow):
                     print("error4 at MainWindow/execute", e)
         except Exception as e:  # it an error occured, moset likely and AttributeError
             print("error5 at MainWindow/execute", e)
- 
+
         ask = self.dbdic.get('ask', False)
         defaultfname = self.getdefaultfname()
         if ask:
@@ -205,17 +209,17 @@ class MainWindow(QMainWindow):
             # AskDialog sets standardflow, a global variable, to True if user hits the OK button
             dlg = AskDialog(defaultfname)  # call up the dialog box to add a new record.
             dlg.exec_()
-            try: 
+            try:
                 with open(self.configdb, 'r') as file:
-                    x = file.read()     
+                    x = file.read()
                     self.dbdic = ast.literal_eval(x)
             except Exception as e:  # it an error occured, moset likely and AttributeError
-                print("error10 at MainWindow/execute", e) 
+                print("error10 at MainWindow/execute", e)
         else:
             standardflow = True
             try:
                 with open(self.configdb, 'r+') as file:
-                    x = file.read()     
+                    x = file.read()
                     self.dbdic = ast.literal_eval(x)
                     self.dbdic['file2save2'] = defaultfname
                     file.seek(0)
@@ -228,21 +232,20 @@ class MainWindow(QMainWindow):
                    "Otherwise the program will run as normal.\n\n" + str(e))
                    msgtitle = 'Warning'
                    message(msg, msgtitle, msgtype='Warning', showButtons=False)
-        
+
         self.createdfile = ''
         files = []
         n = self.lstbox_view.count()
         for i in range(n):
             files.append(self.lstbox_view.item(i).text())
-        
+
         if standardflow == True:
-            msg = bomcheck.bomcheck(files, d=self.drop_chkbox.isChecked(), 
-                                    b=self.across_chkbox.isChecked(), 
-                                    dbdic = self.dbdic,
-                                    x=True, l=True)
+            dfs, df, msg = bomcheck.bomcheck(files, d=self.drop_chkbox.isChecked(),
+                               b=self.across_chkbox.isChecked(),
+                               dbdic = self.dbdic, x=self.dbdic['autosave'])
         else:
-            msg = []         
-            
+            msg = []
+
         createdfile = 'Created file: unknown'
         for x in msg:
             if 'Created file:' in x and len(x) > 4:
@@ -255,39 +258,49 @@ class MainWindow(QMainWindow):
                     createdfile = 'Created file: ...\\' + '\\'.join(lst[-3:])
             elif 'Created file:' in x:
                 createdfile = x
-                
+
         if len(msg) == 1 and  'Created file:' in msg[0]:
             del msg[0]
-        
-        self.statusbar.showMessage(createdfile, 1000000) 
+
+        self.statusbar.showMessage(createdfile, 1000000)
         if msg:
             msgtitle = 'bomcheck discrepancy warning'
-            message(''.join(msg), msgtitle)
-            
+            message(str(''.join(msg)), msgtitle)
+        if 'DataFrame' in str(type(df)):
+            df_window = df_viewer.DFwindow(df, self)
+            df_window.resize(1175, 800)
+            df_window.setWindowTitle('Checked BOMs')
+            df_window.show()
+        if 'DataFrame' in str(type(dfs)):
+            df_window = df_viewer.DFwindow(dfs, self)
+            df_window.resize(775, 800)
+            df_window.setWindowTitle('CAD BOMs for which corresponding ERP BOMs not supplied')
+            df_window.show()
+
     def clear(self):
         self.lstbox_view.clear()
-    
+
     def _help(self):
         webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_help.html')
-        
+
     def _helpgui(self):
         webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheckgui_help.html')
-        
+
     def _helptroubleshoot(self):
         webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_troubleshoot.html')
-        
+
     def about(self):
         dlg = AboutDialog()
         dlg.exec_()
-        
+
     def settings(self):
         dlg = SettingsDialog()
         dlg.exec_()
-    
+
     def getdefaultfname(self):
-        '''Look at the list of filenames that have been dropped.  From that 
+        '''Look at the list of filenames that have been dropped.  From that
         list look for a name that ends with '_sl.xlsx', and extract a potential
-        name to assign to the bomcheck output file.  E.g. from 093345_sl.xlsx, 
+        name to assign to the bomcheck output file.  E.g. from 093345_sl.xlsx,
         present to the user: 093345_bomcheck.  If no filename found ending
         with _sl.xlsx, or if more than one such file, then present the name:
         bomcheck.
@@ -295,7 +308,7 @@ class MainWindow(QMainWindow):
         Returns
         -------
         defaultFname: str
-            default filename for the output xlsx file that bomcheck creates. 
+            default filename for the output xlsx file that bomcheck creates.
         '''
         j = 0
         files = []
@@ -313,17 +326,17 @@ class MainWindow(QMainWindow):
         else:
             defaultFname = 'bomcheck'
         return defaultFname
-        
-    
+
+
 class AskDialog(QDialog):
     ''' A dialog box asking the user what the output filename should be.
-    '''        
+    '''
     def __init__(self, default):
         super(AskDialog, self).__init__()
-         
+
         global standardflow
         standardflow = False  # Assumes that the user won't hit the OK button
-        
+
         self.setWindowTitle('Filename for results?')
         self.setFixedWidth(350)
         self.setFixedHeight(150)
@@ -335,12 +348,12 @@ class AskDialog(QDialog):
         self.fnameinput.setMaxLength(40)
         self.fnameinput.setText(default)
         layout.addWidget(self.fnameinput)
-        
+
         self.QBtn = QPushButton('text-align:center')
         self.QBtn.setText("OK")
         self.QBtn.setMaximumWidth(75)
         self.QBtn.clicked.connect(self.fname)
-    
+
         hbox = QHBoxLayout()
         hbox.addWidget(self.QBtn)
         layout.addLayout(hbox)
@@ -348,16 +361,16 @@ class AskDialog(QDialog):
 
     def fname(self):
         global standardflow
-        
+
         askfname = self.fnameinput.text()
         if askfname.strip() == '':
             askfname = 'bomcheck'
         askfname = os.path.splitext(os.path.basename(askfname))[0]
-        
+
         configdb = get_configfn()
         try:
             with open(configdb, 'r+') as file:
-                x = file.read()     
+                x = file.read()
                 self.dbdic = ast.literal_eval(x)
                 self.dbdic['file2save2'] = askfname
                 file.seek(0)
@@ -367,8 +380,8 @@ class AskDialog(QDialog):
             print("Error 103 at AskDialog\n\n", e)
         standardflow = True
         self.close()
-        
-           
+
+
 class SettingsDialog(QDialog):
     ''' A dialog box asking the user what the settings he would like to make.
     '''
@@ -380,7 +393,7 @@ class SettingsDialog(QDialog):
         self.setFixedHeight(500)  # was 150
 
         layout = QVBoxLayout()
-        
+
         self.configdb = ''
         try:
             self.configdb = get_configfn()
@@ -389,32 +402,37 @@ class SettingsDialog(QDialog):
             self.dbdic = ast.literal_eval(x)
         except Exception as e:  # it an error occured, moset likely and AttributeError
             print("error8 at SettingsDialog", e)
-            
+
         self.ask_chkbox = QCheckBox('Ask what name the bomcheck file should be.')
         _bool = self.dbdic.get('ask', False)
         self.ask_chkbox.setChecked(_bool)
         layout.addWidget(self.ask_chkbox)
-        
+
         self.overwrite_chkbox = QCheckBox('Allow overwrite of existing bomcheck file.')
-        _bool = self.dbdic.get('overwrite', False)
+        _bool = self.dbdic.get('overwrite', True)
         self.overwrite_chkbox.setChecked(_bool)
         layout.addWidget(self.overwrite_chkbox)
 
-        hbox1 = QHBoxLayout()        
-        
+        self.autosave_chkbox = QCheckBox('Automatically save results to an Excel file.')
+        _bool = self.dbdic.get('autosave', False)
+        self.autosave_chkbox.setChecked(_bool)
+        layout.addWidget(self.autosave_chkbox)
+
+        hbox1 = QHBoxLayout()
+
         self.decplcs = QComboBox()
         self.decplcs.addItems(['0', '1', '2', '3', '4', '5'])
         _decplcs = str(self.dbdic.get('accuracy', 2))
         self.decplcs.setCurrentText(_decplcs)
-        hbox1.addWidget(self.decplcs) 
+        hbox1.addWidget(self.decplcs)
         decplcs_label = QLabel()
         decplcs_label.setText('Round SW converted lengths to X decimal plcs.')
         hbox1.addWidget(decplcs_label)
-        
+
         layout.addLayout(hbox1)
-        
-        hbox2 =  QHBoxLayout() 
-        
+
+        hbox2 =  QHBoxLayout()
+
         self.swum = QComboBox()
         self.swum.addItems(['in', 'ft', 'yd', 'mm', 'cm', 'm'])
         _from_um = str(self.dbdic.get('from_um', 'in'))
@@ -423,11 +441,11 @@ class SettingsDialog(QDialog):
         swum_label = QLabel()
         swum_label.setText('SolidWorks U/M' + 10*' ')
         hbox2.addWidget(swum_label)
-        
+
         empty_label1 = QLabel()
         empty_label1.setText('   ')
         hbox2.addWidget(empty_label1)
-        
+
         self.slum = QComboBox()
         self.slum.addItems(['in', 'ft', 'yd', 'mm', 'cm', 'm'])
         _to_um = str(self.dbdic.get('to_um', 'ft'))
@@ -436,61 +454,61 @@ class SettingsDialog(QDialog):
         slum_label = QLabel()
         slum_label.setText('SyteLine U/M' + 20*' ')
         hbox2.addWidget(slum_label)
-        
+
         layout.addLayout(hbox2)
-        
+
         drop_label = QLabel()
-        drop_label.setText('drop list (Ignore these pt. nos. shown in SW BOMs):')
+        drop_label.setText('drop list (Ignore these pt. nos. shown in BOMs):')
         layout.addWidget(drop_label)
-        
+
         self.drop_input = QTextEdit()
         self.drop_input.setPlaceholderText('Separate pt. nos. with commas and/or spaces.  Letters are case sensitive')
         if 'udrop' in self.dbdic:
             self.drop_input.setPlainText(self.dbdic.get('udrop', ''))
         layout.addWidget(self.drop_input)
-        
+
         exceptions_label = QLabel()
         exceptions_label.setText('exceptions list (exceptions to pt. nos. in the drop list):')
         layout.addWidget(exceptions_label)
-        
+
         self.exceptions_input = QTextEdit()
         self.exceptions_input.setPlaceholderText('Separate pt. nos. with commas and/or spaces.  Letters are case sensitive.')
         if 'uexceptions' in self.dbdic:
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
-        
+
         ## added 2/23/22
         cfgpathname_label = QLabel()
         cfgpathname_label.setText('pathname of bomcheck.cfg file')
         layout.addWidget(cfgpathname_label)
-        
+
         self.cfgpathname_input = QTextEdit()
         self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg')
         if 'cfgpathname' in self.dbdic:
             self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
         layout.addWidget(self.cfgpathname_input)
         ##
-     
+
         ############################################################
         authorname_label = QLabel()
         authorname_label.setText('Author: ')
         layout.addWidget(authorname_label)
-        
+
         self.authorname_input = QLineEdit()
         self.authorname_input.setPlaceholderText(get_author(forPlaceHolder=True))
         if 'author' in self.dbdic:
             self.author =  self.dbdic.get('author')
             self.authorname_input.setText(self.author)
         layout.addWidget(self.authorname_input)
-        
+
         ############################################################
-        
-        
+
+
         self.QBtnOK = QPushButton('text-align:center')
         self.QBtnOK.setText("OK")
         self.QBtnOK.setMaximumWidth(75)
         self.QBtnOK.clicked.connect(self._done)
-        
+
         self.QBtnCancel = QPushButton('text-align:center')
         self.QBtnCancel.setText("Cancel")
         self.QBtnCancel.setMaximumWidth(75)
@@ -505,34 +523,39 @@ class SettingsDialog(QDialog):
     def _done(self):
         try:
             with open(self.configdb, "r+") as file:
-                x = file.read()    
+                x = file.read()
                 self.dbdic = ast.literal_eval(x)
                 if self.ask_chkbox.isChecked():
                     self.dbdic['ask'] = True
                 else:
                     self.dbdic['ask'] = False
-                if self.overwrite_chkbox.isChecked(): 
+                if self.overwrite_chkbox.isChecked():
                     self.dbdic['overwrite'] = True
                 else:
-                    self.dbdic['overwrite'] = False 
+                    self.dbdic['overwrite'] = False
+                if self.autosave_chkbox.isChecked():
+                    self.dbdic['autosave'] = True
+                else:
+                    self.dbdic['autosave'] = False
+
                 drp = self.drop_input.toPlainText()
                 self.dbdic['udrop'] = drp
                 excep = self.exceptions_input.toPlainText()
                 self.dbdic['uexceptions'] = excep
                 cfgpn = self.cfgpathname_input.toPlainText()
                 self.dbdic['cfgpathname'] = cfgpn
-                
+
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()
                 self.dbdic['to_um'] = self.slum.currentText()
-                
+
                 self.authorname = self.authorname_input.text().strip()
                 if not self.authorname:
                     self.authorname = get_author(True)
-                
+
                 self.dbdic['author'] = self.authorname
-                
-                
+
+
                 file.seek(0)
                 file.write(str(self.dbdic))
                 file.truncate()
@@ -541,10 +564,10 @@ class SettingsDialog(QDialog):
             print(msg)
             message(msg, 'Error', msgtype='Warning', showButtons=False)
         self.close()
-        
+
     def cancel(self):
         self.close()
-                
+
 
 class AboutDialog(QDialog):
     ''' Show company name, logo, program author, program creation date
@@ -553,7 +576,7 @@ class AboutDialog(QDialog):
         super(AboutDialog, self).__init__(*args, **kwargs)
 
         self.setFixedHeight(320)
-        
+
         QBtn = QDialogButtonBox.Ok
         self.buttonBox = QDialogButtonBox(QBtn)
         self.buttonBox.accepted.connect(self.accept)
@@ -575,47 +598,47 @@ class AboutDialog(QDialog):
                                 'ERP database.\n\n' +
                                 'Author: Ken Carlton, 1/27/2021'))
         layout.addWidget(self.buttonBox)
-        self.setLayout(layout)       
-        
-        
+        self.setLayout(layout)
+
+
 class ListboxWidget(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)
         self._placeholder_text = "Drag & Drop"
-        
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:
             event.accept()
         else:
             event.ignore()
-            
+
     def dragMoveEvent(self, event):
         if event.mimeData().hasUrls():
             event.setDropAction(Qt.CopyAction)
             event.accept()
         else:
             event.ignore()
-            
+
     def dropEvent(self, event):
         #global folder
         if event.mimeData().hasUrls():
             event.setDropAction(Qt.CopyAction)
             event.accept()
-            
-            links = []            
+
+            links = []
             for url in event.mimeData().urls():
                 if url.isLocalFile():
                     links.append(str(url.toLocalFile()))
                 else:
                     links.append(str(url.toString()))
-                    
+
             self.addItems(links)
 
         else:
             event.ignore()
-    
-    # https://stackoverflow.com/questions/60076333/how-to-set-the-placeholder-text-in-the-center-when-the-qlistwidget-is-empty            
+
+    # https://stackoverflow.com/questions/60076333/how-to-set-the-placeholder-text-in-the-center-when-the-qlistwidget-is-empty
     @property
     def placeholder_text(self):
         return self._placeholder_text
@@ -637,19 +660,19 @@ class ListboxWidget(QListWidget):
                 self.placeholder_text, Qt.ElideRight, self.viewport().width()
             )
             painter.drawText(self.viewport().rect(), Qt.AlignCenter, elided_text)
-            painter.restore()  
-            
-            
+            painter.restore()
+
+
 def cmdtxt(foldr):
     ''' Create a dirpath name based on a URI type scheme.  Put in front of
-    it the command that will be capable of opening it in file manager program.  
-    
-    e.g. in Windows: 
+    it the command that will be capable of opening it in file manager program.
+
+    e.g. in Windows:
         exlorer file:///C:/SW_Vault/CAD%20Documents/PRODUCTION%20SYSTEMS
-        
+
     e.g. on my Ubuntu Linux system:
         thunar file:///home/ken/tmp/bom%20files
-        
+
     Where %20 is equivalent to a space character.
     referece: https://en.wikipedia.org/wiki/File_URI_scheme
     '''
@@ -700,7 +723,7 @@ def message(msg, msgtitle, msgtype='Warning', showButtons=False):
 
 def get_configfn():
     '''1. Get the pathname to store user defined settings.  The file will be
-    named config.txt.  The pathname will be vary depending on who's logged in. 
+    named config.txt.  The pathname will be vary depending on who's logged in.
     It will look like: C:\\Users\\Ken\\AppData\\Local\\bomcheck\\config.txt.
     2.  If a Linux system is used, the pathname will look like:
     /home/Ken/.bomcheck/config.txt
@@ -714,25 +737,25 @@ def get_configfn():
         if not os.path.isdir(path):
             os.makedirs(path, exist_ok=True)
         configdb = os.path.join(datadir, 'bomcheck', 'config.txt')
-         
+
     elif sys.platform[:3] == 'lin':  # if a Linux operating system being used.
         homedir = os.path.expanduser('~')
         path = os.path.join(homedir, '.bomcheck')
         if not os.path.isdir(path):
-            os.makedirs(path, exist_ok=True) 
-        configdb = os.path.join(homedir, '.bomcheck', 'config.txt') 
-            
+            os.makedirs(path, exist_ok=True)
+        configdb = os.path.join(homedir, '.bomcheck', 'config.txt')
+
     else:
         printStr = ('At method "get_configfn", a suitable path was not found to\n'
                     'create file config.txt.  Notify the programmer of this error.')
-        print(printStr) 
+        print(printStr)
         return ""
-    
+
     _bool = os.path.exists(configdb)
     if not _bool or (_bool and os.path.getsize(configdb) == 0):
-        with open(configdb, 'w') as file: 
+        with open(configdb, 'w') as file:
             file.write("{'udrop':'3*-025'}")
-                
+
     return configdb
 
 
@@ -751,7 +774,7 @@ def get_author(forPlaceHolder=False):
         return author
 
     # if "author" is in the settings file:
-    settingsfn = get_configfn() 
+    settingsfn = get_configfn()
     try:
         with open(settingsfn, 'r') as file:
             x = file.read()
@@ -763,9 +786,7 @@ def get_author(forPlaceHolder=False):
         message(msg, 'Error', msgtype='Warning', showButtons=False)
     return author
 
-############################################################   
 
-            
 app = QApplication(sys.argv)
 
 window = MainWindow()

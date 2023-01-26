@@ -1,4 +1,4 @@
-pi'''
+'''
 setup.py for bomcheckgui.py
 '''
 

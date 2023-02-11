@@ -4,6 +4,6 @@
 :: and run this batch file.  This batch file requires the program 'pyinstaller'
 :: to be installed on your machine.
 
-pyinstaller C:\Users\Ken\Documents\shared\projects\bomcheckgui\src\bomcheckgui.py -w --icon=C:\Users\Ken\Documents\shared\projects\bomcheckgui\bomcheck.ico
+pyinstaller C:\Users\Ken\Documents\shared\projects\bomcheckgui\src\bomcheckgui.py -w -F --icon=C:\Users\Ken\Documents\shared\projects\bomcheckgui\bomcheck.ico
 
 

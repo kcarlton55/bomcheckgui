@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.7.12'
+__version__ = '1.7.13'
 __author__ = 'Kenneth E. Carlton'
 
 
@@ -113,18 +113,26 @@ class MainWindow(QMainWindow):
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
 
-        help_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'bomcheck_help', self)
+        help_action = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'bomcheck_help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
 
-        helpgui_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'bomcheckgui help', self)
+        helpgui_action = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'bomcheckgui help', self)
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
 
-        helptrb_action = QAction(qta.icon("fa5s.question", color="#228B22"), 'Troubleshoot', self)
+        helptrb_action = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'Troubleshoot', self)
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
+
+        bcgui_license = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'License', self)
+        bcgui_license.triggered.connect(self._bcgui_license)
+        help_menu.addAction(bcgui_license)
+
+        softwareHomeSite = QAction(qta.icon("fa5s.caret-right", color="#228B22"), "bomcheck's web site", self)
+        softwareHomeSite.triggered.connect(self._softwareHomeSite)
+        help_menu.addAction(softwareHomeSite)
 
         about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
@@ -278,6 +286,12 @@ class MainWindow(QMainWindow):
 
     def _helptroubleshoot(self):
         webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_troubleshoot.html')
+
+    def _bcgui_license(self):
+        webbrowser.open('https://github.com/kcarlton55/bomcheckgui/blob/main/LICENSE.txt')
+
+    def _softwareHomeSite(self):
+        webbrowser.open('https://github.com/kcarlton55/bomcheck')
 
     def about(self):
         dlg = AboutDialog()
@@ -576,17 +590,19 @@ class AboutDialog(QDialog):
 
         self.setWindowTitle('About')
 
-        labelpic = QLabel()
+        #labelpic = QLabel()
         #pixmap = QPixmap('icons/welcomemat.png')
         #labelpic.setPixmap(pixmap)
 
         #layout.addWidget(labelpic)
-        layout.addWidget(QLabel('bomcheckgui version: ' + __version__ + '\n' +
+        layout.addWidget(QLabel('Description: A program to compare Bills of\n'
+                                'Materials (BOMs)\n\n'
+                                'bomcheckgui version: ' + __version__ + '\n'
                                 'bomcheck version: ' + bomcheck.get_version() + '\n'
-                                'A program to commpare BOMs\n' +
-                                'from SolidWorks to those from an\n' +
-                                'ERP database.\n\n' +
-                                'Author: Ken Carlton, 1/27/2021'))
+                                '(bomcheck is incorporated within bomcheckgui)\n\n'
+
+                                'Author: Ken Carlton, 1/27/2021\n'
+                                'kencarlton55@gmail.com'))
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 

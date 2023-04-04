@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.7.14'
+__version__ = '1.9'
 __author__ = 'Kenneth E. Carlton'
 
 

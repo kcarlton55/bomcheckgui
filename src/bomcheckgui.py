@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.7.13'
+__version__ = '1.7.14'
 __author__ = 'Kenneth E. Carlton'
 
 
@@ -578,31 +578,28 @@ class AboutDialog(QDialog):
     '''
     def __init__(self, *args, **kwargs):
         super(AboutDialog, self).__init__(*args, **kwargs)
-
+        if __version__ == bomcheck.get_version():
+            msg = ('Description: A program to compare Bills of\n'
+                     'Materials (i.e., BOMs)\n\n'
+                     'Version: ' + __version__ + '\n\n'
+                     'Author: Ken Carlton, 1/27/2021\n'
+                     'kencarlton55@gmail.com')
+        else:
+            msg = ('Description: A program to compare Bills of\n'
+                     'Materials (i.e., BOMs)\n\n'
+                     'bomcheckgui version: ' + __version__ + '\n'
+                     'bomcheck version: ' + bomcheck.get_version() + '\n'
+                     '(bomcheck is incorporated within bomcheckgui)\n\n'
+                     'Author: Ken Carlton, 1/27/2021\n'
+                     'kencarlton55@gmail.com')
         self.setFixedHeight(320)
-
         QBtn = QDialogButtonBox.Ok
         self.buttonBox = QDialogButtonBox(QBtn)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
-
-        layout = QVBoxLayout()
-
         self.setWindowTitle('About')
-
-        #labelpic = QLabel()
-        #pixmap = QPixmap('icons/welcomemat.png')
-        #labelpic.setPixmap(pixmap)
-
-        #layout.addWidget(labelpic)
-        layout.addWidget(QLabel('Description: A program to compare Bills of\n'
-                                'Materials (BOMs)\n\n'
-                                'bomcheckgui version: ' + __version__ + '\n'
-                                'bomcheck version: ' + bomcheck.get_version() + '\n'
-                                '(bomcheck is incorporated within bomcheckgui)\n\n'
-
-                                'Author: Ken Carlton, 1/27/2021\n'
-                                'kencarlton55@gmail.com'))
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel(msg))
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 

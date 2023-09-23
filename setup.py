@@ -9,8 +9,8 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='bomcheckgui',   # name people will use to pip install
-    python_requires='>=3.8',
-    version='1.9',
+    python_requires='>=3.10',
+    version='1.9.1',
     description='gui for bomcheck',
     long_description=long_description,
     long_description_content_type='text/markdown',

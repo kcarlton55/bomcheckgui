@@ -417,7 +417,7 @@ class SettingsDialog(QDialog):
         self.overwrite_chkbox.setChecked(_bool)
         layout.addWidget(self.overwrite_chkbox)
 
-        self.autosave_chkbox = QCheckBox('Automatically save results to an Excel file.')
+        self.autosave_chkbox = QCheckBox('Automatically save results to an csv file.')
         _bool = self.dbdic.get('autosave', False)
         self.autosave_chkbox.setChecked(_bool)
         layout.addWidget(self.autosave_chkbox)
@@ -815,7 +815,7 @@ class DFwindow(QDialog):
         self.buttonPreview = QPushButton('Print Preview', self)
         self.buttonPreview.clicked.connect(self.handlePreview)
 
-        self.save_as_xlsx = QPushButton('&Save as .xlsx', self)
+        self.save_as_xlsx = QPushButton('&Save as .csv', self)
         self.save_as_xlsx.setShortcut('Ctrl+S')
         self.save_as_xlsx.clicked.connect(self.save_xlsx)
 
@@ -875,12 +875,12 @@ class DFwindow(QDialog):
         document.print_(printer)
 
     def save_xlsx(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="xlsx (*.xlsx)",
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="csv (*.csv)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
         f, e = os.path.splitext(f)
         results2export = [('BOM Check', self.df_xlsx)]
-        export2excel(dirname, f, results2export, 'unknown')
+        export2excel(dirname, f, results2export)
 
 
 class DFmodel(QAbstractTableModel):

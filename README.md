@@ -1,34 +1,40 @@
 # bomcheckgui
-> <i>bomcheckgui.py has been converted to exe format.  [Click here](https://github.com/kcarlton55/bomcheckgui/releases/tag/v1.9  "website of bomcheckgui.exe") to go to the web page where it is located.</i>
+<i>bomcheckgui.py has been converted to exe format.  [Look for it here](https://github.com/kcarlton55/bomcheckgui "bomcheckgui.exe")</i>
 
 ### **What the program does**
 
 Bomcheckgui is a graphical user interface (gui) for the [bomcheck](https://github.com/kcarlton55/bomcheck "bomcheck's home") program.
-It compares bills of materials (BOMs).
+It compares Bills of Materials (BOMs).
 
 ### **How to install**
 Assuming that you already have Python on your machine, use the package
 manager software [pip](https://en.wikipedia.org/wiki/Pip_(package_manager))
-that comes with Python:
+that comes with Python, and type this on on the command line to install:
 
 `pip install bomcheckgui`
 
+This will also automatically install bomcheck if it is not already installed on
+your machine
+
 ### **How to run**
 
-To open up the gui, from the command line, or via a link you set up, run:
+To run the program, from the command line, enter:
 
 `bomcheckgui`
 
 ### **How it works**
 
-Drag and drop the BOM files that you want to be checked onto the central
-portion of the gui.  Click the icon that looks like a green check mark to
-generate results.  An Excel file will be created and results stored to it.
+Drag and drop the BOM files that you want to be checked onto bomcheckgui's
+drag/drop window.  Click the green check mark icon to generate results.
+(See bomcheck's help section for additional information)
 
 ### **bomcheck.cfg**
 Bomcheck has a configuration file available named bomcheck.cfg.  With it the
-default U/M measure can be switched from inches to mm, or to some other U/M.
-Also, column names can be changed, and so forth.  Within the bomcheck.cfg
-file are explanations about settings that can be employed.  To get started, download
-the bomcheck.cfg from [here](https://github.com/kcarlton55/bomcheck/tree/master/docs),
-then open the file with a text editor and modify it as suits you best.
+default Unit of Measure (U/M) can be switched from inches to mm or to some
+other U/M.  Also, column header names can be changed to suit the user's needs.
+Within the bomcheck.cfg file are explanations about what settings that can be
+employed.  To get started, download bomcheck.cfg from
+[https://github.com/kcarlton55/bomcheck/tree/master/doc](https://github.com/kcarlton55/bomcheck/tree/master/docs),
+save to your local disk, then open with text editor and modify it as you like.
+Afterwards go to bomcheckgui's settings and point the program to your config
+file.

@@ -9,10 +9,10 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.1'
+__version__ = '1.9.2'
 __author__ = 'Kenneth E. Carlton'
 
-
+#import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -86,7 +86,7 @@ class MainWindow(QMainWindow):
         empty_label1.setText('   ')
         toolbar.addWidget(empty_label1)
 
-        self.drop_chkbox = QCheckBox('Activate the drop list')
+        self.drop_chkbox = QCheckBox('Activate drop list')
         self.drop_chkbox.setChecked(False)
         self.drop_chkbox.setStatusTip('Ignore pt. nos of SW parts that are in the drop list.  See File>Settings.')
         toolbar.addWidget(self.drop_chkbox)
@@ -95,10 +95,19 @@ class MainWindow(QMainWindow):
         empty_label1.setText('   ')
         toolbar.addWidget(empty_label1)
 
-        self.across_chkbox = QCheckBox('Output to multiple sheets')
-        self.across_chkbox.setChecked(False)
-        self.across_chkbox.setStatusTip('Break up results across multiple sheets within the output Excel file.')
-        toolbar.addWidget(self.across_chkbox)
+        self.cspn_chkbox = QCheckBox('case sensitive part nos.')
+        self.cspn_chkbox.setChecked(False)
+        self.cspn_chkbox.setStatusTip('case sensitive comparison of part nos.')
+        toolbar.addWidget(self.cspn_chkbox)
+
+        empty_label1 = QLabel()
+        empty_label1.setText('   ')
+        toolbar.addWidget(empty_label1)
+
+        self.csdsc_chkbox = QCheckBox('case sensitive descriptions')
+        self.csdsc_chkbox.setChecked(False)
+        self.csdsc_chkbox.setStatusTip('case sensitive comparison of descriptions')
+        toolbar.addWidget(self.csdsc_chkbox)
 
         execute_action = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)
         execute_action.triggered.connect(self.execute)
@@ -239,7 +248,8 @@ class MainWindow(QMainWindow):
 
         if standardflow == True:
             dfs, df, msg = bomcheck.bomcheck(files, d=self.drop_chkbox.isChecked(),
-                               b=self.across_chkbox.isChecked(),
+                               cspn=self.cspn_chkbox.isChecked(),
+                               csdsc=self.csdsc_chkbox.isChecked(),
                                dbdic = self.dbdic, x=self.dbdic['autosave'])
         else:
             msg = []

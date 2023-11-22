@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.2'
+__version__ = '1.9.3'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -476,7 +476,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(drop_label)
 
         self.drop_input = QTextEdit()
-        self.drop_input.setPlaceholderText('Separate pt. nos. with commas and/or spaces.  Letters are case sensitive')
+        self.drop_input.setPlaceholderText('Separate pt. nos. with commas.  Letters are case sensitive.')
         if 'udrop' in self.dbdic:
             self.drop_input.setPlainText(self.dbdic.get('udrop', ''))
         layout.addWidget(self.drop_input)
@@ -486,7 +486,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(exceptions_label)
 
         self.exceptions_input = QTextEdit()
-        self.exceptions_input.setPlaceholderText('Separate pt. nos. with commas and/or spaces.  Letters are case sensitive.')
+        self.exceptions_input.setPlaceholderText('Separate pt. nos. with commas.  Letters are case sensitive.')
         if 'uexceptions' in self.dbdic:
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
@@ -501,22 +501,6 @@ class SettingsDialog(QDialog):
         if 'cfgpathname' in self.dbdic:
             self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
         layout.addWidget(self.cfgpathname_input)
-        ##
-
-        ############################################################
-        authorname_label = QLabel()
-        authorname_label.setText('Author: ')
-        layout.addWidget(authorname_label)
-
-        self.authorname_input = QLineEdit()
-        self.authorname_input.setPlaceholderText(get_author(forPlaceHolder=True))
-        if 'author' in self.dbdic:
-            self.author =  self.dbdic.get('author')
-            self.authorname_input.setText(self.author)
-        layout.addWidget(self.authorname_input)
-
-        ############################################################
-
 
         self.QBtnOK = QPushButton('text-align:center')
         self.QBtnOK.setText("OK")
@@ -552,9 +536,9 @@ class SettingsDialog(QDialog):
                 else:
                     self.dbdic['autosave'] = False
 
-                drp = self.drop_input.toPlainText()
+                drp = self.drop_input.toPlainText().replace('"', '').replace("'", "")
                 self.dbdic['udrop'] = drp
-                excep = self.exceptions_input.toPlainText()
+                excep = self.exceptions_input.toPlainText().replace('"', '').replace("'", "")
                 self.dbdic['uexceptions'] = excep
                 cfgpn = self.cfgpathname_input.toPlainText()
                 self.dbdic['cfgpathname'] = cfgpn
@@ -562,13 +546,6 @@ class SettingsDialog(QDialog):
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()
                 self.dbdic['to_um'] = self.slum.currentText()
-
-                self.authorname = self.authorname_input.text().strip()
-                if not self.authorname:
-                    self.authorname = get_author(True)
-
-                self.dbdic['author'] = self.authorname
-
 
                 file.seek(0)
                 file.write(str(self.dbdic))
@@ -770,32 +747,6 @@ def get_configfn():
             file.write("{'udrop':'3*-025'}")
 
     return configdb
-
-
-def get_author(forPlaceHolder=False):
-    # first assume that "author" name not in file containing user settings
-    if os.getenv('USERNAME'):
-        author = os.getenv('USERNAME')  # Works only on MS Windows
-    elif sys.platform[:3] == 'lin':  # I'm working on my Linux system
-        author = 'kcarlton'
-    else:
-        author = 'unknown'
-
-    if forPlaceHolder:
-        return author
-
-    # if "author" is in the settings file:
-    settingsfn = get_configfn()
-    try:
-        with open(settingsfn, 'r') as file:
-            x = file.read()
-            settingsdic = ast.literal_eval(x)
-            author = settingsdic.get('author', author)
-    except Exception as e:
-        msg =  "error12 at get_author.  " + str(e)
-        print(msg)
-        message(msg, 'Error', msgtype='Warning', showButtons=False)
-    return author
 
 
 class DFwindow(QDialog):

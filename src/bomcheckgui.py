@@ -139,10 +139,6 @@ class MainWindow(QMainWindow):
         bcgui_license.triggered.connect(self._bcgui_license)
         help_menu.addAction(bcgui_license)
 
-        softwareHomeSite = QAction(qta.icon("fa5s.caret-right", color="#228B22"), "bomcheck's web site", self)
-        softwareHomeSite.triggered.connect(self._softwareHomeSite)
-        help_menu.addAction(softwareHomeSite)
-
         about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
         help_menu.addAction(about_action)
@@ -289,19 +285,16 @@ class MainWindow(QMainWindow):
         self.lstbox_view.clear()
 
     def _help(self):
-        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_help.html')
+        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/help_files/bomcheck_help.html')
 
     def _helpgui(self):
-        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheckgui_help.html')
+        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheckgui/blob/' + __version__ +'/help_files/bomcheckgui_help.html')
 
     def _helptroubleshoot(self):
-        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/master/help_files/bomcheck_troubleshoot.html')
+        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/help_files/bomcheck_troubleshoot.html')
 
     def _bcgui_license(self):
         webbrowser.open('https://github.com/kcarlton55/bomcheckgui/blob/main/LICENSE.txt')
-
-    def _softwareHomeSite(self):
-        webbrowser.open('https://github.com/kcarlton55/bomcheck')
 
     def about(self):
         dlg = AboutDialog()
@@ -578,15 +571,24 @@ class AboutDialog(QDialog):
                      'bomcheck version: ' + bomcheck.get_version() + '\n'
                      '(bomcheck is incorporated within bomcheckgui)\n\n'
                      'Author: Ken Carlton, 1/27/2021\n'
-                     'kencarlton55@gmail.com')
-        self.setFixedHeight(320)
+                     'kencarlton55@gmail.com\n\n'
+                     #'bomcheckgui home: <a href="https://github.com/kcarlton55/bomcheckgui">https://github.com/kcarlton55/bomcheckgui</a>'
+                     'bomcheckgui home:\n    https://github.com/kcarlton55/bomcheckgui \n'
+                     'bomcheckgui source code:\n    https://github.com/kcarlton55/bomcheckgui/blob/' + __version__  + '/src/bomcheckgui.py \n\n'
+                     'bomcheck home:\n    https://github.com/kcarlton55/bomcheck \n'
+                     'bomcheck source code:\n   https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/src/bomcheck.py '
+                     )
+        self.setFixedHeight(360)
         QBtn = QDialogButtonBox.Ok
         self.buttonBox = QDialogButtonBox(QBtn)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         self.setWindowTitle('About')
         layout = QVBoxLayout()
-        layout.addWidget(QLabel(msg))
+        qmsg = QLabel(msg)
+        qmsg.setTextInteractionFlags(Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
+        #qmsg.setOpenExternalLinks(True)
+        layout.addWidget(qmsg)
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
 

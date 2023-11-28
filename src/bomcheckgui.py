@@ -19,7 +19,6 @@ import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 import bomcheck
 import qtawesome as qta
-import webbrowser
 import os.path
 from bomcheck import export2excel
 from PyQt5 import QtPrintSupport
@@ -285,16 +284,16 @@ class MainWindow(QMainWindow):
         self.lstbox_view.clear()
 
     def _help(self):
-        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/help_files/bomcheck_help.html')
+        bomcheck.open_help_webpage('bomcheck_help')
 
     def _helpgui(self):
-        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheckgui/blob/' + __version__ +'/help_files/bomcheckgui_help.html')
+        bomcheck.open_help_webpage('bomcheckgui_help', __version__)  # version here is the bomcheckgui version
 
     def _helptroubleshoot(self):
-        webbrowser.open('https://htmlpreview.github.io/?https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/help_files/bomcheck_troubleshoot.html')
+        bomcheck.open_help_webpage('bomcheck_troubleshoot')
 
     def _bcgui_license(self):
-        webbrowser.open('https://github.com/kcarlton55/bomcheckgui/blob/main/LICENSE.txt')
+        bomcheck.open_help_webpage('license')
 
     def about(self):
         dlg = AboutDialog()

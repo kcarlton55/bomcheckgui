@@ -12,7 +12,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '1.9.3'
 __author__ = 'Kenneth E. Carlton'
 
-#import pdb # use with pdb.set_trace()
+import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -284,16 +284,18 @@ class MainWindow(QMainWindow):
         self.lstbox_view.clear()
 
     def _help(self):
-        bomcheck.open_help_webpage('bomcheck_help')
+        bomcheck.view_help('bomcheck_help', dbdic=self.dbdic)
+        # self.dbdic sent so that dictionnary key 'cfgpathname', containing location
+        # of bomcheck.cfg file, is sent to function bomcheck.open_help_webpage
 
     def _helpgui(self):
-        bomcheck.open_help_webpage('bomcheckgui_help', __version__)  # version here is the bomcheckgui version
+        bomcheck.view_help('bomcheckgui_help', __version__, dbdic=self.dbdic)  # version here is the bomcheckgui version
 
     def _helptroubleshoot(self):
-        bomcheck.open_help_webpage('bomcheck_troubleshoot')
+        bomcheck.view_help('bomcheck_troubleshoot', dbdic=self.dbdic)
 
     def _bcgui_license(self):
-        bomcheck.open_help_webpage('license')
+        bomcheck.view_help('license')
 
     def about(self):
         dlg = AboutDialog()
@@ -489,7 +491,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(cfgpathname_label)
 
         self.cfgpathname_input = QTextEdit()
-        self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg')
+        self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg  (note: program reload required)')
         if 'cfgpathname' in self.dbdic:
             self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
         layout.addWidget(self.cfgpathname_input)

@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
             msgtitle = 'Warning'
             message(msg, msgtitle, msgtype='Warning', showButtons=False)
             self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 'ask': False,
-                          'overwrite': True, 'folder': '', 'file2save2': 'bomcheck'}
+                          'overwrite': False, 'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
 
         self.folder = self.dbdic.get('folder')
@@ -416,10 +416,12 @@ class SettingsDialog(QDialog):
         self.ask_chkbox.setChecked(_bool)
         layout.addWidget(self.ask_chkbox)
 
-        self.overwrite_chkbox = QCheckBox('Allow overwrite of existing bomcheck file.')
-        _bool = self.dbdic.get('overwrite', True)
-        self.overwrite_chkbox.setChecked(_bool)
-        layout.addWidget(self.overwrite_chkbox)
+# =============================================================================
+#         self.overwrite_chkbox = QCheckBox('Allow overwrite of existing bomcheck file.')
+#         _bool = self.dbdic.get('overwrite', True)
+#         self.overwrite_chkbox.setChecked(_bool)
+#         layout.addWidget(self.overwrite_chkbox)
+# =============================================================================
 
         self.autosave_chkbox = QCheckBox('Automatically save results to an csv file.')
         _bool = self.dbdic.get('autosave', False)
@@ -521,10 +523,12 @@ class SettingsDialog(QDialog):
                     self.dbdic['ask'] = True
                 else:
                     self.dbdic['ask'] = False
-                if self.overwrite_chkbox.isChecked():
-                    self.dbdic['overwrite'] = True
-                else:
-                    self.dbdic['overwrite'] = False
+# =============================================================================
+#                 if self.overwrite_chkbox.isChecked():
+#                     self.dbdic['overwrite'] = True
+#                 else:
+#                     self.dbdic['overwrite'] = False
+# =============================================================================
                 if self.autosave_chkbox.isChecked():
                     self.dbdic['autosave'] = True
                 else:

@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.3'
+__version__ = '1.9.4'
 __author__ = 'Kenneth E. Carlton'
 
 import pdb # use with pdb.set_trace()
@@ -24,12 +24,15 @@ from bomcheck import export2excel
 from PyQt5 import QtPrintSupport
 from PyQt5.QtCore import (QAbstractTableModel, Qt)
 from PyQt5.QtGui import (QColor, QFont, QKeySequence, QPainter, QTextCursor,
-                         QTextDocument, QTextTableFormat)
+                         QTextDocument, QTextTableFormat, QDoubleValidator)
 from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialog,
                              QDialogButtonBox, QFileDialog, QGridLayout,
                              QHBoxLayout, QLabel, QLineEdit, QListWidget,
                              QMainWindow, QMessageBox, QPushButton, QStatusBar,
-                             QTableView, QTextEdit, QToolBar, QVBoxLayout)
+                             QTableView, QTextEdit, QToolBar, QVBoxLayout,
+                             QItemDelegate, QTableWidget, QHeaderView,
+                             QTableWidgetItem, QWidget)
+
 
 printStrs = []
 
@@ -275,9 +278,12 @@ class MainWindow(QMainWindow):
             df_window.setWindowTitle('Checked BOMs')
             df_window.show()
         if 'DataFrame' in str(type(dfs)):
-            df_window = DFwindow(dfs, self)
-            df_window.resize(775, 800)
+            BOMtype='sw'
+            df_window = DFEditor(dfs, BOMtype, self)
+            df_window.resize(800, 800)
             df_window.setWindowTitle('CAD BOMs for which corresponding ERP BOMs not supplied')
+            df_window.exec_()
+            #pdb.set_trace()
             df_window.show()
 
     def clear(self):
@@ -912,6 +918,124 @@ def merge_index(df):
     is_duplicated = df.iloc[:, 0].duplicated()  # False, True, False, False, True, True, False
     df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated  # where df.iloc[:, 0] is 0300-2022-384, 0300-2022-384, 2728-2020-908, ...
     return df
+
+#############################################################################
+
+class FloatDelegate(QItemDelegate):
+    def __init__(self, parent=None):
+        super().__init__()
+
+    def createEditor(self, parent, option, index):
+        editor = QLineEdit(parent)
+        editor.setValidator(QDoubleValidator())
+        return editor
+
+
+class TableWidget(QTableWidget):
+    def __init__(self, df, BOMtype):
+        super().__init__()
+        self.BOMtype = BOMtype
+        self.df = df
+        self.setStyleSheet('font-size: 35x;')
+
+        nRows, nColumns = self.df.shape
+        self.setColumnCount(nColumns)
+        self.setRowCount(nRows)
+
+        self.setHorizontalHeaderLabels(('assy', 'Op', 'Wc', 'Item', 'Q',
+                                        'Description', 'U'))
+
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+
+        #self.setItemDelegateForColumn(1, IntDelegate())
+        self.setItemDelegateForColumn(4, FloatDelegate())
+
+        #data insertion
+        assy = []
+        for i in range(self.rowCount()):
+            for j in range(self.columnCount()):
+                txt = str(self.df.iloc[i, j])
+                if j == 0 and txt in assy:
+
+                    self.setItem(i, j, QTableWidgetItem(''))
+                else:
+                    assy.append(txt)
+                    self.setItem(i, j, QTableWidgetItem(txt))
+                #self.setItem(i, j, QTableWidgetItem(str(self.df.iloc[i, j])))
+
+        self.clip = QApplication.clipboard()
+
+    def updateDF(self, row, column):
+        text = self.item(row, column).text()
+        self.df.iloc[row, column] = text
+
+    def keyPressEvent(self, event):
+        if (event.modifiers() & Qt.ControlModifier):
+            selected = self.selectedRanges()
+            topRow = selected[0].topRow()
+            bottomRow = selected[0].bottomRow()
+            leftColumn = selected[0].leftColumn()
+            rightColumn = selected[0].rightColumn()
+
+            if event.key()==Qt.Key_C and topRow==bottomRow and  leftColumn==rightColumn:
+                s = str(self.item(topRow, leftColumn).text()) + '\n'
+                self.clip.setText(s)
+            elif event.key()==Qt.Key_C and self.BOMtype=='sw':
+                s = ''
+                for r in range(topRow, bottomRow + 1):
+                    for c in range(1, 4 +1):   # only columns 1, 2, 3, and 4 selected
+                        try:
+                            s += str(self.item(r, c).text()) + '\t'
+                        except AttributeError:
+                            s += '\t'
+                    s = s[:-1] + '\n' #eliminate last '\t'
+                self.clip.setText(s)
+            elif event.key() == Qt.Key_C:
+                s = ''
+                for r in range(topRow, bottomRow + 1):
+                    for c in range(leftColumn, rightColumn +1):
+                        try:
+                            s += str(self.item(r, c).text()) + '\t'
+                        except AttributeError:
+                            s += '\t'
+                    s = s[:-1] + '\n' #eliminate last '\t'
+                self.clip.setText(s)
+
+
+class DFEditor(QDialog):
+    def __init__(self, df, BOMtype, parent=None):
+        super().__init__()
+        mainLayout = QVBoxLayout()
+        df.reset_index(inplace=True)
+        self.table = TableWidget(df, BOMtype)
+        mainLayout.addWidget(self.table)
+
+        button_print = QPushButton('Display DF')
+        #button_print.setStyleSheet('font-size: 30px')
+        button_print.clicked.connect(self.print_DF_Values)
+        mainLayout.addWidget(button_print)
+
+        button_export = QPushButton('Export to CSF file')
+        #button_export.setStyleSheet('font-size: 30px')
+        button_export.clicked.connect(self.export_to_csv)
+        mainLayout.addWidget(button_export)
+
+        self.setLayout(mainLayout)
+
+
+    def print_DF_Values(self):
+        print(self.table.df)
+
+    def export_to_csv(self):
+        self.table.df.to_csv('Data export.csv', index=False)
+        print('CSV file exported.')
 
 
 

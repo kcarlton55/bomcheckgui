@@ -963,59 +963,37 @@ class TableWidget(QTableWidget):
         vheader = self.verticalHeader()
         vheader.setVisible(False)
 
-
         self.setItemDelegateForColumn(4, FloatDelegate())
 
         #data insertion
-# =============================================================================
-#         assy = []
-#         position = {}
-#         a = []
-#         for i in range(self.rowCount()):
-#             for j in range(self.columnCount()):
-#                 txt = str(self.df.iloc[i, j])
-#                 if j == 0 and txt in assy:
-#                     #a
-#                     self.setItem(i, j, QTableWidgetItem('')) # if assy no. already shown, put '' instead.
-#                 else:
-#                     assy.append(txt)
-#                     a.append([i, i])
-#                     position[i] = a[i]
-#                     self.setItem(i, j, QTableWidgetItem(txt))
-# =============================================================================
-
-
         assy = []
-        position = {}
-        a = []
-        k = 0
         for i in range(self.rowCount()):
-            txt = str(self.df.iloc[i, 0])
-            if  txt in assy:
-                a[k][1] = i
-                position[i] = a[k]
-                self.setItem(i, j, QTableWidgetItem('')) # if assy no. already shown, put '' instead.
-            else:
-                assy.append(txt)
-                a.append([k, i])
-                k += 1
-                position[i] = a[i]
-                self.setItem(i, j, QTableWidgetItem(txt))
+            for j in range(self.columnCount()):
+                txt = str(self.df.iloc[i, j])
+                if j == 0 and txt in assy:
+                    self.setItem(i, j, QTableWidgetItem('')) # if assy no. already shown, put '' instead.
+                    self.df.iloc[i, j] = ''
+                else:
+                    assy.append(txt)
+                    self.setItem(i, j, QTableWidgetItem(txt))
 
         self.cellChanged[int, int].connect(self.updateDF)
 
         self.clip = QApplication.clipboard()
 
     def updateDF(self, row, column):
-        if self.BOMtype=="sw" and column==1:
-            text = self.item(row, column).text()
-            for i in range(self.rowCount()):
-                #self.df.iloc[i, column] = str(text)
-                #self.setItem(i, column, text)
+        text = self.item(row, column).text().strip()
+        if self.df.columns[column]=='Op':
+            for i in range(row, self.rowCount()):
                 self.item(i, column).setText(text)
-
+                self.df.iloc[row, column] = text
+                try:
+                    textAtColumn0 = self.item(i+1, 0).text()
+                    if textAtColumn0:
+                        break
+                except:
+                    pass  #tried to exceed the no. of rows in a table
         else:
-            text = self.item(row, column).text()
             self.df.iloc[row, column] = text
 
     def keyPressEvent(self, event):
@@ -1043,15 +1021,11 @@ class TableWidget(QTableWidget):
 class DFEditor(QDialog):
     def __init__(self, df, BOMtype, parent=None):
         super().__init__()
+        self.df = df
         mainLayout = QVBoxLayout()
         df.reset_index(inplace=True)
         self.table = TableWidget(df, BOMtype)
         mainLayout.addWidget(self.table)
-
-        button_print = QPushButton('Display DF')
-        #button_print.setStyleSheet('font-size: 30px')
-        button_print.clicked.connect(self.print_DF_Values)
-        mainLayout.addWidget(button_print)
 
         button_export = QPushButton('Export to CSV file')
         #button_export.setStyleSheet('font-size: 30px')
@@ -1060,21 +1034,15 @@ class DFEditor(QDialog):
 
         self.setLayout(mainLayout)
 
-
-    def print_DF_Values(self):
-        print(self.table.df)
-
-    def export_to_csv(self):
-        self.table.df.to_csv('Data export.csv', index=False)
-        print('CSV file exported.')
-
     def save_xlsx(self):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="csv (*.csv)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
         f, e = os.path.splitext(f)
-        results2export = [('BOM Check', self.df_xlsx)]
-        export2excel(dirname, f, results2export)
+        if not e:
+            e = '.csv'
+        filename = os.path.join(dirname, f+e)
+        self.df.to_csv(filename, sep='\t', index=False)
 
 
 

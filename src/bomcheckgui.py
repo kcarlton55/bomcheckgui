@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
                              QMainWindow, QMessageBox, QPushButton, QStatusBar,
                              QTableView, QTextEdit, QToolBar, QVBoxLayout,
                              QItemDelegate, QTableWidget, QHeaderView,
-                             QTableWidgetItem, QWidget)
+                             QTableWidgetItem)
 
 
 printStrs = []
@@ -920,6 +920,7 @@ def merge_index(df):
     return df
 
 #############################################################################
+# ref: https://www.youtube.com/watch?v=zrXFhHE-Ysg
 
 class FloatDelegate(QItemDelegate):
     def __init__(self, parent=None):
@@ -936,14 +937,19 @@ class TableWidget(QTableWidget):
         super().__init__()
         self.BOMtype = BOMtype
         self.df = df
-        self.setStyleSheet('font-size: 35x;')
+        #self.setStyleSheet('font-size: 35px;')
+        #ref: https://www.w3.org/TR/SVG11/types.html#ColorKeywords
+        if BOMtype=='sw':
+            self.setStyleSheet('background-color: peachpuff')
+            self.setStyleSheet('alternate-background-color: mistyrose;')
 
         nRows, nColumns = self.df.shape
         self.setColumnCount(nColumns)
         self.setRowCount(nRows)
 
-        self.setHorizontalHeaderLabels(('assy', 'Op', 'Wc', 'Item', 'Q',
-                                        'Description', 'U'))
+        self.setHorizontalHeaderLabels(df.columns)
+        self.setShowGrid(False)
+        self.setAlternatingRowColors(True)
 
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
@@ -953,28 +959,64 @@ class TableWidget(QTableWidget):
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
+        header.setVisible(False)
+        vheader = self.verticalHeader()
+        vheader.setVisible(False)
 
-        #self.setItemDelegateForColumn(1, IntDelegate())
+
         self.setItemDelegateForColumn(4, FloatDelegate())
 
         #data insertion
-        assy = []
-        for i in range(self.rowCount()):
-            for j in range(self.columnCount()):
-                txt = str(self.df.iloc[i, j])
-                if j == 0 and txt in assy:
+# =============================================================================
+#         assy = []
+#         position = {}
+#         a = []
+#         for i in range(self.rowCount()):
+#             for j in range(self.columnCount()):
+#                 txt = str(self.df.iloc[i, j])
+#                 if j == 0 and txt in assy:
+#                     #a
+#                     self.setItem(i, j, QTableWidgetItem('')) # if assy no. already shown, put '' instead.
+#                 else:
+#                     assy.append(txt)
+#                     a.append([i, i])
+#                     position[i] = a[i]
+#                     self.setItem(i, j, QTableWidgetItem(txt))
+# =============================================================================
 
-                    self.setItem(i, j, QTableWidgetItem(''))
-                else:
-                    assy.append(txt)
-                    self.setItem(i, j, QTableWidgetItem(txt))
-                #self.setItem(i, j, QTableWidgetItem(str(self.df.iloc[i, j])))
+
+        assy = []
+        position = {}
+        a = []
+        k = 0
+        for i in range(self.rowCount()):
+            txt = str(self.df.iloc[i, 0])
+            if  txt in assy:
+                a[k][1] = i
+                position[i] = a[k]
+                self.setItem(i, j, QTableWidgetItem('')) # if assy no. already shown, put '' instead.
+            else:
+                assy.append(txt)
+                a.append([k, i])
+                k += 1
+                position[i] = a[i]
+                self.setItem(i, j, QTableWidgetItem(txt))
+
+        self.cellChanged[int, int].connect(self.updateDF)
 
         self.clip = QApplication.clipboard()
 
     def updateDF(self, row, column):
-        text = self.item(row, column).text()
-        self.df.iloc[row, column] = text
+        if self.BOMtype=="sw" and column==1:
+            text = self.item(row, column).text()
+            for i in range(self.rowCount()):
+                #self.df.iloc[i, column] = str(text)
+                #self.setItem(i, column, text)
+                self.item(i, column).setText(text)
+
+        else:
+            text = self.item(row, column).text()
+            self.df.iloc[row, column] = text
 
     def keyPressEvent(self, event):
         if (event.modifiers() & Qt.ControlModifier):
@@ -983,21 +1025,10 @@ class TableWidget(QTableWidget):
             bottomRow = selected[0].bottomRow()
             leftColumn = selected[0].leftColumn()
             rightColumn = selected[0].rightColumn()
+            if event.key()==Qt.Key_C and self.df.columns[leftColumn]=='Op' and rightColumn>4:
+                rightColumn = 4
 
-            if event.key()==Qt.Key_C and topRow==bottomRow and  leftColumn==rightColumn:
-                s = str(self.item(topRow, leftColumn).text()) + '\n'
-                self.clip.setText(s)
-            elif event.key()==Qt.Key_C and self.BOMtype=='sw':
-                s = ''
-                for r in range(topRow, bottomRow + 1):
-                    for c in range(1, 4 +1):   # only columns 1, 2, 3, and 4 selected
-                        try:
-                            s += str(self.item(r, c).text()) + '\t'
-                        except AttributeError:
-                            s += '\t'
-                    s = s[:-1] + '\n' #eliminate last '\t'
-                self.clip.setText(s)
-            elif event.key() == Qt.Key_C:
+            if event.key() == Qt.Key_C:
                 s = ''
                 for r in range(topRow, bottomRow + 1):
                     for c in range(leftColumn, rightColumn +1):
@@ -1022,9 +1053,9 @@ class DFEditor(QDialog):
         button_print.clicked.connect(self.print_DF_Values)
         mainLayout.addWidget(button_print)
 
-        button_export = QPushButton('Export to CSF file')
+        button_export = QPushButton('Export to CSV file')
         #button_export.setStyleSheet('font-size: 30px')
-        button_export.clicked.connect(self.export_to_csv)
+        button_export.clicked.connect(self.save_xlsx)
         mainLayout.addWidget(button_export)
 
         self.setLayout(mainLayout)
@@ -1036,6 +1067,14 @@ class DFEditor(QDialog):
     def export_to_csv(self):
         self.table.df.to_csv('Data export.csv', index=False)
         print('CSV file exported.')
+
+    def save_xlsx(self):
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="csv (*.csv)",
+                                    options=QFileDialog.DontConfirmOverwrite)
+        dirname, f = os.path.split(filename)
+        f, e = os.path.splitext(f)
+        results2export = [('BOM Check', self.df_xlsx)]
+        export2excel(dirname, f, results2export)
 
 
 

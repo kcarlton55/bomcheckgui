@@ -280,7 +280,7 @@ class MainWindow(QMainWindow):
         if 'DataFrame' in str(type(dfs)):
             BOMtype='sw'
             df_window = DFEditor(dfs, BOMtype, self)
-            df_window.resize(800, 800)
+            df_window.resize(750, 800)
             df_window.setWindowTitle('CAD BOMs for which corresponding ERP BOMs not supplied')
             df_window.exec_()
             #pdb.set_trace()
@@ -959,11 +959,14 @@ class TableWidget(QTableWidget):
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
-        header.setVisible(False)
+        header.setDefaultAlignment(Qt.AlignLeft)
+
+        #header.setSectionResizeMode(QHeaderView.ResizeToContents)
         vheader = self.verticalHeader()
         vheader.setVisible(False)
 
-        self.setItemDelegateForColumn(4, FloatDelegate())
+        if self.df.columns[4]=='Q':
+            self.setItemDelegateForColumn(4, FloatDelegate())
 
         #data insertion
         assy = []
@@ -971,7 +974,7 @@ class TableWidget(QTableWidget):
             for j in range(self.columnCount()):
                 txt = str(self.df.iloc[i, j])
                 if j == 0 and txt in assy:
-                    self.setItem(i, j, QTableWidgetItem('')) # if assy no. already shown, put '' instead.
+                    self.setItem(i, j, QTableWidgetItem('')) # In column 0, if assy no. already in that column, put '' there instead.
                     self.df.iloc[i, j] = ''
                 else:
                     assy.append(txt)
@@ -984,13 +987,13 @@ class TableWidget(QTableWidget):
     def updateDF(self, row, column):
         text = self.item(row, column).text().strip()
         if self.df.columns[column]=='Op':
-            for i in range(row, self.rowCount()):
+            for i in range(row, self.rowCount()):  # make op no. same for all pns for a particular assy no.
                 self.item(i, column).setText(text)
                 self.df.iloc[row, column] = text
                 try:
-                    textAtColumn0 = self.item(i+1, 0).text()
+                    textAtColumn0 = self.item(i+1, 0).text()  # In column 0, textAtColunn0 = '' or an assy pn.
                     if textAtColumn0:
-                        break
+                        break        # stop remplacing op nos. if a different assy no. listed, i.e. not ''
                 except:
                     pass  #tried to exceed the no. of rows in a table
         else:
@@ -1038,10 +1041,8 @@ class DFEditor(QDialog):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="csv (*.csv)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
-        f, e = os.path.splitext(f)
-        if not e:
-            e = '.csv'
-        filename = os.path.join(dirname, f+e)
+        f, _ = os.path.splitext(f)
+        filename = os.path.join(dirname, f+'.csv')
         self.df.to_csv(filename, sep='\t', index=False)
 
 

@@ -12,7 +12,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '1.9.4'
 __author__ = 'Kenneth E. Carlton'
 
-import pdb # use with pdb.set_trace()
+#import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os

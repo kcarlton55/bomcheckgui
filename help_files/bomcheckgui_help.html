@@ -19,7 +19,7 @@
     <ul>
       <li><a href="#intro">Introduction</a></li>
       <li><a href="#run">How to run bomcheckgui</a></li>
-      <li><a href="#copy_paste">How to copy & paste from a CAD BOM into ERP</a></li>
+      <li><a href="#copy_paste">How to copy & paste from the CAD BOM Table into ERP</a></li>
     </ul>
 
     <h2 id="intro">Introduction</h2>
@@ -52,93 +52,6 @@
       your BOMs, and later you want to reopen it to make changes, instead of
       having to search for that folder again, click on the folder icon.
       Your folder will open.</p>
-
-    <h2 id="copy_paste">How to copy & paste from a CAD BOM into ERP</h2>
-    <p>If bomcheck encounters a CAD BOM for which no ERP was found to compare
-    it to, bomcheckgui outputs a "CAD BOM Table" which looks like this:
-    </p>
-
-    <p>
-    <img src="CAD_BOM_Table_marked.png" alt="CAD BOM Table">
-    Image #1, CAD BOM Table.
-    </p>
-
-    <p>
-    Into the ERP (i.e. SyteLine), after Copying, the result will look like:
-
-    <p>
-    <img src="paste_rows_append.png" alt="BOM shown in SyteLine">
-    Image #2, ERP program
-    </p>
-
-    <p>Here are steps to take:</p>
-
-    <ol type="1">
-        <li>Order the columns in SyteLine like those shown in Image #2.  I.e.,
-        Operation, WC, Material, Quantity, Description, and U/M</li>
-        <li>From the CAD BOM Table (see image #1), copy values you want to paste
-        from columns Op, WC, Item, and Q</li>
-        <li>Go to the Current Materials of the Item you wish to paste the
-        BOM into.  If the table is empty, click row 1 and then do <i>Edit >
-        Paste Rows Append</i>.  If the table is not empty and some BOM items
-        are already in place, click on the row where you would like new items
-        to be inserted.</li>
-        <li>Click the Save button</li>
-    </ol>
-
-    <p>When you're pasting, if an error message pops up saying Slow Inventory
-    Item, or Part Doesn't exist, etc., click the button in the pop-up menu that will
-    allow your paste operation to continue.  You can go back later once the pasting
-    is done to make corrections.  If an item doesn't exist, you won't be able
-    to save the BOM you just created.  Therefore you are forced to take steps
-    to correct.</p>
-
-
-
-
-
-
-
-
-    <p>Characteristics about this table that you should be aware of:</p>
-
-    <p> 1.  If you copy a block of text from this table into the
-    BOM of the ERP program, make sure the first column in the ERP BOM is <b>Op</b>,
-    the second,  <b>WC</b>, the third <b>Item</b>, and the fourth <b>Qty</b>.
-    Placement of other columns is not as important, but <b>Description</b> and
-    <b>U/M</b> are good choices.</p>
-
-    <p>2.  When you copy (Ctrl+C) a block of text in order to paste it into
-    the ERP BOM, copy <i>ONLY</i>  the Op, WC, Item, and Q columns from the CAD BOM
-    Table.  The ERP will automatically fill in the Description and U/M.</p>
-
-    <p>3.  When you do your Ctrl+C copy, and if you additionally copy the Description
-    and/or U/M, the Ctrl+C will automatically reject copying the Description and
-    U/M to the clipboard.  <u>Therefore it will not be pasted.</u></p>
-
-    <p>4.  Always use the Append menu option of the ERP program to do your
-    pasting.  Avoid other methods.  They don't work.</p>
-
-    <p>5.  If Op 10 is not the Pick op, you can change the op for a particular
-    subassembly by placing the appropriate op number at first part for
-    the subassembly.  The op no. for remaining subassy parts will automatically
-    fill in.  Assembly 2700-2003-307 above shows a different op number.</p>
-
-    <p>6.  If your op no. is not correct, that is, it is not a Pick op, and
-    you paste in your text, the name in the WC column will not show PICK.  As
-    in the table above, FAB is shown.  Therefore you should correct the op number.
-    Note: Even the you pasted in <i>PICK</i>, will will not overwrite the WC
-    for that Op.  This is a good thing.
-
-
-
-    <img src="paste_rows_append.png" alt="how to paste to SyteLine">
-
-
-
-
-
-
 
 
 

@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.4'
+__version__ = '1.9.5'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -20,18 +20,18 @@ sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 import bomcheck
 import qtawesome as qta
 import os.path
-from bomcheck import export2excel
+from bomcheck import export2txt
 from PyQt5 import QtPrintSupport
 from PyQt5.QtCore import (QAbstractTableModel, Qt)
 from PyQt5.QtGui import (QColor, QFont, QKeySequence, QPainter, QTextCursor,
-                         QTextDocument, QTextTableFormat, QDoubleValidator)
+                         QTextDocument, QTextTableFormat, QDoubleValidator, QIcon)
 from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialog,
                              QDialogButtonBox, QFileDialog, QGridLayout,
                              QHBoxLayout, QLabel, QLineEdit, QListWidget,
                              QMainWindow, QMessageBox, QPushButton, QStatusBar,
                              QTableView, QTextEdit, QToolBar, QVBoxLayout,
                              QItemDelegate, QTableWidget, QHeaderView,
-                             QTableWidgetItem)
+                             QTableWidgetItem, QAbstractItemView)
 
 
 printStrs = []
@@ -40,7 +40,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.setWindowIcon(qta.icon("fa5s.check", color="#228B22"))
+        #self.setWindowIcon(qta.icon("fa5s.check", color="#228B22"))
+        self.setWindowIcon(QIcon('logo.png'))
 
         try:
             self.configdb = get_configfn()
@@ -58,7 +59,7 @@ class MainWindow(QMainWindow):
                           'overwrite': False, 'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
 
-        self.folder = self.dbdic.get('folder')
+        self.folder = self.dbdic.get('folder', '') # get the working directory where user's bom excel files last came from
 
         file_menu = self.menuBar().addMenu('&File')
         help_menu = self.menuBar().addMenu('&Help')
@@ -429,7 +430,7 @@ class SettingsDialog(QDialog):
 #         layout.addWidget(self.overwrite_chkbox)
 # =============================================================================
 
-        self.autosave_chkbox = QCheckBox('Automatically save results to an csv file.')
+        self.autosave_chkbox = QCheckBox('Automatically save results to a txt file.')
         _bool = self.dbdic.get('autosave', False)
         self.autosave_chkbox.setChecked(_bool)
         layout.addWidget(self.autosave_chkbox)
@@ -610,6 +611,8 @@ class ListboxWidget(QListWidget):
         self.setAcceptDrops(True)
         self._placeholder_text = "Drag & Drop"
 
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)  # https://stackoverflow.com/questions/4008649/qlistwidget-and-multiple-selection
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls:
             event.accept()
@@ -664,6 +667,19 @@ class ListboxWidget(QListWidget):
             )
             painter.drawText(self.viewport().rect(), Qt.AlignCenter, elided_text)
             painter.restore()
+
+    def keyPressEvent(self, ev):
+        if ev.key() in (Qt.Key_Delete, Qt.Key_Backspace):
+            i = self.currentItem()
+            if i is not None:
+                self.delete_selected()
+                # ev.accept()  # not needed per https://doc.qt.io/qt-5/qkeyevent.html
+                return
+        return QListWidget.keyPressEvent(self, ev)
+
+    def delete_selected(self):
+        for item in self.selectedItems():
+            self.takeItem(self.row(item))
 
 
 def cmdtxt(foldr):
@@ -769,7 +785,7 @@ class DFwindow(QDialog):
     def __init__(self, df, parent=None):
         super(DFwindow, self).__init__(parent)
 
-        self.df_xlsx = df.copy()  # make a copy.  This will be used to save to an Excel file
+        self.df_xlsx = df.copy()  # make a copy.  This will be used to save to an txt file
         self.df = merge_index(df)  # use for disply to user and for printing
         self.columnLabels = self.df.columns
         model = DFmodel(self.df, self)
@@ -789,7 +805,7 @@ class DFwindow(QDialog):
         self.buttonPreview = QPushButton('Print Preview', self)
         self.buttonPreview.clicked.connect(self.handlePreview)
 
-        self.save_as_xlsx = QPushButton('&Save as .csv', self)
+        self.save_as_xlsx = QPushButton('&Save as .txt', self)
         self.save_as_xlsx.setShortcut('Ctrl+S')
         self.save_as_xlsx.clicked.connect(self.save_xlsx)
 
@@ -849,12 +865,12 @@ class DFwindow(QDialog):
         document.print_(printer)
 
     def save_xlsx(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="csv (*.csv)",
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="txt (*.txt)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
         f, e = os.path.splitext(f)
         results2export = [('BOM Check', self.df_xlsx)]
-        export2excel(dirname, f, results2export)
+        export2txt(dirname, f, results2export)
 
 
 class DFmodel(QAbstractTableModel):
@@ -1030,7 +1046,7 @@ class DFEditor(QDialog):
         self.table = TableWidget(df, BOMtype)
         mainLayout.addWidget(self.table)
 
-        button_export = QPushButton('Export to CSV file')
+        button_export = QPushButton('Export to txt file')
         #button_export.setStyleSheet('font-size: 30px')
         button_export.clicked.connect(self.save_xlsx)
         mainLayout.addWidget(button_export)
@@ -1038,11 +1054,11 @@ class DFEditor(QDialog):
         self.setLayout(mainLayout)
 
     def save_xlsx(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="csv (*.csv)",
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="txt (*.txt)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
         f, _ = os.path.splitext(f)
-        filename = os.path.join(dirname, f+'.csv')
+        filename = os.path.join(dirname, f+'.txt')
         self.df.to_csv(filename, sep='\t', index=False)
 
 

@@ -17,17 +17,20 @@ import ast
 import sys
 import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
+sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\src')
 import bomcheck
 import qtawesome as qta
 import os.path
+from pathlib import Path
 from bomcheck import export2txt
-from PyQt5 import QtPrintSupport
+from PyQt5 import (QtPrintSupport)
 from PyQt5.QtCore import (QAbstractTableModel, Qt)
 from PyQt5.QtGui import (QColor, QFont, QKeySequence, QPainter, QTextCursor,
-                         QTextDocument, QTextTableFormat, QDoubleValidator, QIcon)
+                         QTextDocument, QTextTableFormat, QDoubleValidator, #QIcon,
+                         QGuiApplication)
 from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialog,
                              QDialogButtonBox, QFileDialog, QGridLayout,
-                             QHBoxLayout, QLabel, QLineEdit, QListWidget,
+                             QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
                              QMainWindow, QMessageBox, QPushButton, QStatusBar,
                              QTableView, QTextEdit, QToolBar, QVBoxLayout,
                              QItemDelegate, QTableWidget, QHeaderView,
@@ -40,8 +43,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        #self.setWindowIcon(qta.icon("fa5s.check", color="#228B22"))
-        self.setWindowIcon(QIcon('logo.png'))
+        self.setWindowIcon(qta.icon("fa5s.check-square", color="#228B22"))
+        #self.setWindowIcon(QIcon('logo.png'))
 
         try:
             self.configdb = get_configfn()
@@ -61,8 +64,8 @@ class MainWindow(QMainWindow):
 
         self.folder = self.dbdic.get('folder', '') # get the working directory where user's bom excel files last came from
 
-        file_menu = self.menuBar().addMenu('&File')
-        help_menu = self.menuBar().addMenu('&Help')
+        file_menu = self.menuBar().addMenu('File')
+        help_menu = self.menuBar().addMenu('Help')
         self.setWindowTitle('bomcheck')
         self.setMinimumSize(925, 300)
 
@@ -70,19 +73,19 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
 
-        btn_ac_execute = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)
+        btn_ac_execute = QAction(qta.icon("ei.caret-right", color="#228B22"), 'Run', self)
         btn_ac_execute.triggered.connect(self.execute)
-        btn_ac_execute.setStatusTip('Do a bomcheck of the files listed in the drag-drop zone.')
+        btn_ac_execute.setStatusTip('Run program')
         toolbar.addAction(btn_ac_execute)
 
-        btn_ac_clear = QAction(qta.icon("mdi.wiper", color="#228B22"), 'Clear', self)
+        btn_ac_clear = QAction(qta.icon("mdi6.selection-remove", color="#228B22"), 'Clear all', self)
         btn_ac_clear.triggered.connect(self.clear)
-        btn_ac_clear.setStatusTip('Clear the drag-drop zone of data.')
+        btn_ac_clear.setStatusTip('Clear drag-drop zone')
         toolbar.addAction(btn_ac_clear)
 
-        btn_ac_folder = QAction(qta.icon("ei.folder-open", color="#228B22"), "Open the folder", self)
+        btn_ac_folder = QAction(qta.icon("ri.folder-received-line", color="#228B22"), "Last used folder", self)
         btn_ac_folder.triggered.connect(self.openfolder)
-        btn_ac_folder.setStatusTip('Open the the most recently active BOM folder.')
+        btn_ac_folder.setStatusTip('Open last used folder')
         toolbar.addAction(btn_ac_folder)
 
         empty_label1 = QLabel()
@@ -91,7 +94,7 @@ class MainWindow(QMainWindow):
 
         self.drop_chkbox = QCheckBox('Activate drop list')
         self.drop_chkbox.setChecked(False)
-        self.drop_chkbox.setStatusTip('Ignore pt. nos of SW parts that are in the drop list.  See File>Settings.')
+        self.drop_chkbox.setStatusTip('Ignore SW parts in drop list  (See File>Settings)')
         toolbar.addWidget(self.drop_chkbox)
 
         empty_label1 = QLabel()
@@ -100,7 +103,7 @@ class MainWindow(QMainWindow):
 
         self.cspn_chkbox = QCheckBox('case sensitive part nos.')
         self.cspn_chkbox.setChecked(False)
-        self.cspn_chkbox.setStatusTip('case sensitive comparison of part nos.')
+        self.cspn_chkbox.setStatusTip('Case sensitive comparison of part nos.')
         toolbar.addWidget(self.cspn_chkbox)
 
         empty_label1 = QLabel()
@@ -109,10 +112,19 @@ class MainWindow(QMainWindow):
 
         self.csdsc_chkbox = QCheckBox('case sensitive descriptions')
         self.csdsc_chkbox.setChecked(False)
-        self.csdsc_chkbox.setStatusTip('case sensitive comparison of descriptions')
+        self.csdsc_chkbox.setStatusTip('Case sensitive comparison of descriptions')
         toolbar.addWidget(self.csdsc_chkbox)
 
-        execute_action = QAction(qta.icon("fa5s.check", color="#228B22"), 'Execute', self)
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..
+
+        fileopen_action = QAction(qta.icon("fa5s.folder-open", color="#228B22"), '&Open', self)
+        fileopen_action.setShortcut(QKeySequence.Open)
+        fileopen_action.triggered.connect(self.fileopen)
+        file_menu.addAction(fileopen_action)
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..
+
+        execute_action = QAction(qta.icon("ei.caret-right", color="#228B22"), 'Run', self)
         execute_action.triggered.connect(self.execute)
         file_menu.addAction(execute_action)
 
@@ -125,24 +137,28 @@ class MainWindow(QMainWindow):
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
 
-        help_action = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'bomcheck_help', self)
+        help_action = QAction(qta.icon("msc.circle-filled", color="#228B22"), 'bomcheck_help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
 
-        helpgui_action = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'bomcheckgui help', self)
+        helpgui_action = QAction(qta.icon("msc.circle-filled", color="#228B22"), 'bomcheckgui help', self)
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
 
-        helptrb_action = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'Troubleshoot', self)
+        helptrb_action = QAction(qta.icon("msc.circle-filled", color="#228B22"), 'Troubleshoot', self)
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
 
-        bcgui_license = QAction(qta.icon("fa5s.caret-right", color="#228B22"), 'License', self)
+        separator = QAction(self)
+        separator.setSeparator(True)
+        help_menu.addAction(separator)
+
+        bcgui_license = QAction(qta.icon("fa.info-circle", color="#228B22"), 'License', self)
         bcgui_license.triggered.connect(self._bcgui_license)
         help_menu.addAction(bcgui_license)
 
-        about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
+        about_action = QAction(qta.icon("fa.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
         help_menu.addAction(about_action)
 
@@ -152,6 +168,17 @@ class MainWindow(QMainWindow):
         self.lstbox_view = ListboxWidget(self)
         self.lstbox_view.setWordWrap(True)
         self.setCentralWidget(self.lstbox_view)
+
+    def fileopen(self):
+        caption = 'Open file'
+        directory = str(Path.cwd())
+        filter_mask = "Excel files (*_sw.xlsx *_sl.xlsx);;All files (*.*)"
+        initialfilter = "Excel files (*_sw.xlsx *_sl.xlsx)"
+        filenames = QFileDialog.getOpenFileNames(self,
+            caption, directory, filter_mask, initialfilter)[0]
+
+        if filenames:
+            self.lstbox_view.addItems([str(Path(filename)) for filename in filenames])
 
     def openfolder(self):
         ''' Open the folder determined by variable "self.folder"'''
@@ -669,12 +696,22 @@ class ListboxWidget(QListWidget):
             painter.restore()
 
     def keyPressEvent(self, ev):
-        if ev.key() in (Qt.Key_Delete, Qt.Key_Backspace):
-            i = self.currentItem()
-            if i is not None:
-                self.delete_selected()
-                # ev.accept()  # not needed per https://doc.qt.io/qt-5/qkeyevent.html
-                return
+        i = self.currentItem()
+        if ev.key() in (Qt.Key_Delete, Qt.Key_Backspace) and i != None:
+            self.delete_selected()
+            # ev.accept()  # not needed per https://doc.qt.io/qt-5/qkeyevent.html
+            return
+        elif ev.modifiers() & Qt.ControlModifier:
+            if ev.key() == Qt.Key_V:   #https://doc.qt.io/qtforpython-5/PySide2/QtGui/QClipboard.html
+                clipboard = QGuiApplication.clipboard()
+                mimeData = clipboard.mimeData()
+                if mimeData.hasText():
+                    pathnames = mimeData.text().split('\n') # list of pathnames
+                    for pathname in pathnames:
+                        pathname = pathname.strip('"') # remove colons that MS puts at ends of pathname
+                        if pathname[:5].lower() == 'file:':
+                            pathname = pathname[8:]  # if pathname is like file:\\\C:\mydirectory\myfile.xlsx
+                        self.addItem(QListWidgetItem(pathname))
         return QListWidget.keyPressEvent(self, ev)
 
     def delete_selected(self):

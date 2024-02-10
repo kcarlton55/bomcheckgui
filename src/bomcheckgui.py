@@ -277,6 +277,8 @@ class MainWindow(QMainWindow):
                                cspn=self.cspn_chkbox.isChecked(),
                                csdsc=self.csdsc_chkbox.isChecked(),
                                dbdic = self.dbdic, x=self.dbdic['autosave'])
+            showTextFile(files)
+
         else:
             msg = []
 
@@ -1097,6 +1099,17 @@ class DFEditor(QDialog):
         f, _ = os.path.splitext(f)
         filename = os.path.join(dirname, f+'.txt')
         self.df.to_csv(filename, sep='\t', index=False)
+
+
+def showTextFile(filelst):
+      for x in [f for f in filelst if f[-4:].lower() == '.txt']:
+          print(x)
+
+
+
+
+
+
 
 
 

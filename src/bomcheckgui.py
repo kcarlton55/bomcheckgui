@@ -271,7 +271,8 @@ class MainWindow(QMainWindow):
             dfs, df, msg = bomcheck.bomcheck(files, d=self.drop_chkbox.isChecked(),
                                cspn=self.cspn_chkbox.isChecked(),
                                csdsc=self.csdsc_chkbox.isChecked(),
-                               dbdic = self.dbdic, x=self.dbdic['autosave'])
+                               dbdic = self.dbdic,
+                               x=self.dbdic.get('autosave', False))
             showTextFile(files)
 
         else:

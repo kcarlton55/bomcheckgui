@@ -9,7 +9,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='bomcheckgui',   # name people will use to pip install
-    python_requires='>=3.10',
+    python_requires='>=3.8',
     version='1.9.5',
     description='gui for bomcheck',
     long_description=long_description,
@@ -24,7 +24,7 @@ setup(
         'Intended Audience :: Manufacturing',
         'Intended Audience :: End Users/Desktop',
         'Operating System :: OS Independent',],
-    install_requires = ['bomcheck>=1.8.5', 'PyQt5>=5.15', 'qtawesome>=1.0'],
+    install_requires = ['bomcheck>=1.9.6', 'PyQt5>=5.15', 'qtawesome>=1.0'],
     url='https://github.com/kcarlton55/bomcheckgui',
     author='Kenneth Edward Carlton',
     author_email='kencarlton55@gmail.com',

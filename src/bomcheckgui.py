@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
             msgtitle = 'Warning'
             message(msg, msgtitle, msgtype='Warning', showButtons=False)
             self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 'ask': False,
-                          'overwrite': False, 'folder': '', 'file2save2': 'bomcheck'}
+                          'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
 
         self.folder = self.dbdic.get('folder', '') # get the working directory where user's bom excel files last came from
@@ -448,13 +448,6 @@ class SettingsDialog(QDialog):
         self.ask_chkbox.setChecked(_bool)
         layout.addWidget(self.ask_chkbox)
 
-# =============================================================================
-#         self.overwrite_chkbox = QCheckBox('Allow overwrite of existing bomcheck file.')
-#         _bool = self.dbdic.get('overwrite', True)
-#         self.overwrite_chkbox.setChecked(_bool)
-#         layout.addWidget(self.overwrite_chkbox)
-# =============================================================================
-
         self.autosave_chkbox = QCheckBox('Automatically save results to a txt file.')
         _bool = self.dbdic.get('autosave', False)
         self.autosave_chkbox.setChecked(_bool)
@@ -555,12 +548,6 @@ class SettingsDialog(QDialog):
                     self.dbdic['ask'] = True
                 else:
                     self.dbdic['ask'] = False
-# =============================================================================
-#                 if self.overwrite_chkbox.isChecked():
-#                     self.dbdic['overwrite'] = True
-#                 else:
-#                     self.dbdic['overwrite'] = False
-# =============================================================================
                 if self.autosave_chkbox.isChecked():
                     self.dbdic['autosave'] = True
                 else:
@@ -613,7 +600,7 @@ class AboutDialog(QDialog):
                      'bomcheckgui home:\n    https://github.com/kcarlton55/bomcheckgui \n'
                      'bomcheckgui source code:\n    https://github.com/kcarlton55/bomcheckgui/blob/' + __version__  + '/src/bomcheckgui.py \n\n'
                      'bomcheck home:\n    https://github.com/kcarlton55/bomcheck \n'
-                     'bomcheck source code:\n   https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/src/bomcheck.py '
+                     'bomcheck source code:\n   https://github.com/kcarlton55/bomcheck/blob/' + bomcheck.get_version() + '/src/bomcheck.py \n'
                      )
         self.setFixedHeight(360)
         QBtn = QDialogButtonBox.Ok
@@ -1100,13 +1087,6 @@ class DFEditor(QDialog):
 def showTextFile(filelst):
       for x in [f for f in filelst if f[-4:].lower() == '.txt']:
           print(x)
-
-
-
-
-
-
-
 
 
 app = QApplication(sys.argv)

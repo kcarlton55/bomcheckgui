@@ -1,3 +1,2 @@
 PyQt5>=5.15
 bomcheck>=1.9.6
-qtawesome>=1.0

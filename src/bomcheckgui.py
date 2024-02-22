@@ -12,7 +12,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '1.9.5'
 __author__ = 'Kenneth E. Carlton'
 
-#import pdb # use with pdb.set_trace()
+import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -1008,12 +1008,17 @@ class TableWidget(QTableWidget):
 
         #data insertion
         assy = []
+        assy_j0 = []
         for i in range(self.rowCount()):
             for j in range(self.columnCount()):
                 txt = str(self.df.iloc[i, j])
-                if j == 0 and txt in assy:
+                if j == 0 and txt in assy_j0:
                     self.setItem(i, j, QTableWidgetItem('')) # In column 0, if assy no. already in that column, put '' there instead.
                     self.df.iloc[i, j] = ''
+                elif j == 0:
+                    assy_j0.append(txt)
+                    assy.append(txt)
+                    self.setItem(i, j, QTableWidgetItem(txt))
                 else:
                     assy.append(txt)
                     self.setItem(i, j, QTableWidgetItem(txt))

@@ -301,15 +301,14 @@ class MainWindow(QMainWindow):
         if 'DataFrame' in str(type(df)):
             df_window = DFwindow(df, self)
             df_window.resize(1175, 800)
-            df_window.setWindowTitle('Checked BOMs')
+            df_window.setWindowTitle('BOMs Compared   (IQDU:  I=Item, Q=Quantity, D=Description, U=U/M)')
             df_window.show()
         if 'DataFrame' in str(type(dfs)):
             BOMtype='sw'
             df_window = DFEditor(dfs, BOMtype, self)
             df_window.resize(750, 800)
-            df_window.setWindowTitle('CAD BOMs for which corresponding ERP BOMs not supplied')
+            df_window.setWindowTitle('BOMs from CAD only')
             df_window.exec_()
-            #pdb.set_trace()
             df_window.show()
 
     def clear(self):

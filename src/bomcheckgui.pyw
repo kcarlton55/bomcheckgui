@@ -19,8 +19,9 @@ import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\src')
 import bomcheck
-#import qtawesome as qta
+#import qtawesome as qta  # I did use this, but problems with when using python 3.8
 import os.path
+import requests
 from pathlib import Path
 from bomcheck import export2txt
 from PyQt5 import (QtPrintSupport)
@@ -60,6 +61,19 @@ class MainWindow(QMainWindow):
             self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 'ask': False,
                           'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
+
+        # Check pypi.org for latest software version.  After a no. of times
+        # running bomcheckgui, show that later version available and how to update.
+        self.chkcount = self.dbdic.get('version_check_count', 0)
+        if self.chkcount == 0 and  check_latest_version():
+            self.chkcount += 1
+            msg = check_latest_version()
+            msgtitle = 'New version available'
+            message(msg, msgtitle, msgtype='Information', showButtons=False)
+        elif self.chkcount < 10 and check_latest_version() :
+            self.chkcount += 1
+        else:
+            self.chkcount = 0
 
         self.folder = self.dbdic.get('folder', '') # get the working directory where user's bom excel files last came from
 
@@ -190,9 +204,9 @@ class MainWindow(QMainWindow):
                 file.truncate()
             self.folder = self.dbdic['folder']
             os.system(cmdtxt(self.folder))
-        except Exception as e:  # it an error occured, most likely and AttributeError
-            print("error2 at MainWindow/openfolder", e)
-            print("error2 at MainWindow/openfolder... possibly due to no data in drag&drop zone")
+        except Exception:  # it an error occured, most likely and AttributeError
+            #print("error2 at MainWindow/openfolder", e)
+            #print("error2 at MainWindow/openfolder... possibly due to no data in drag&drop zone")
             err = True
 
         if err:
@@ -219,6 +233,7 @@ class MainWindow(QMainWindow):
             with open(self.configdb, 'r+') as file:
                 x = file.read()
                 self.dbdic = ast.literal_eval(x)
+                self.dbdic['version_check_count'] = self.chkcount
                 try:
                     self.folder = os.path.dirname(self.lstbox_view.item(0).text())
                     self.dbdic['folder'] = self.folder
@@ -232,6 +247,7 @@ class MainWindow(QMainWindow):
 
         ask = self.dbdic.get('ask', False)
         defaultfname = self.getdefaultfname()
+
         if ask:
             standardflow = False
             # AskDialog sets standardflow, a global variable, to True if user hits the OK button
@@ -365,6 +381,10 @@ class MainWindow(QMainWindow):
         else:
             defaultFname = 'bomcheck'
         return defaultFname
+
+
+def get_version():
+    return __version__
 
 
 class AskDialog(QDialog):
@@ -1092,6 +1112,53 @@ def showTextFile(filelst):
       for x in [f for f in filelst if f[-4:].lower() == '.txt']:
           print(x)
 
+
+def check_latest_version():
+    ''' Look on the pypi.org website and check if there is a later version of
+    bomcheck.py available.  If so, inform the user and provide instructions on
+    how he/she can upgrade to the latest version.
+
+
+    Returns
+    -------
+    out : str
+
+    '''
+    try:
+        package = 'bomcheck'
+        response = requests.get(f'https://pypi.org/pypi/{package}/json', timeout=5)
+        latest_version = response.json()['info']['version']
+        current_version = bomcheck.get_version()           # e.g. like "1.9.6"
+        lv = [int(i) for i in latest_version.split('.')]   # create a list of integers
+        cv = [int(i) for i in current_version.split('.')]  # e.g. like [1, 9, 6]
+
+        package = 'bomcheckgui'
+        response = requests.get(f'https://pypi.org/pypi/{package}/json', timeout=5)
+        latest_version_gui = response.json()['info']['version']
+        current_version_gui = get_version()
+        lv_gui = [int(i) for i in latest_version_gui.split('.')]
+        cv_gui = [int(i) for i in current_version_gui.split('.')]
+
+        printStr = []
+        if lv > cv:
+            printStr.append('Installed: bomcheck ' + current_version + '\n'
+                             'New version available: ' + latest_version + '\n\n')
+            printStr.append('To install it, activate the virtual environment where\n'
+                            "bomcheck is installed (see bomcheck's help section\n"
+                            'about installing bomcheck), and enter this in a\n'
+                            'Command Prompt (cmd):\n\n'
+                            'py -m pip install --upgrade bomcheck\n\n\n')
+        if lv_gui > cv_gui:
+            printStr.append('Installed: bomcheckgui ' + current_version_gui + '\n'
+                            'New version available: ' + latest_version_gui + '\n\n')
+            printStr.append('To install it, activate the virtual environment where\n'
+                            "bomcheck is installed (see bomcheck's help section\n"
+                            'about installing bomcheck), and enter this in a\n'
+                            'Command Prompt (cmd):\n\n'
+                            'py -m pip install --upgrade bomcheckgui\n\n\n')
+        return ''.join(printStr)
+    except requests.ConnectionError:  # No internet connection
+        pass
 
 app = QApplication(sys.argv)
 

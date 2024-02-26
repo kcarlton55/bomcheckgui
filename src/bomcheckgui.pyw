@@ -62,15 +62,15 @@ class MainWindow(QMainWindow):
                           'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
 
-        # Check pypi.org for latest software version.  After a no. of times
-        # running bomcheckgui, show that later version available and how to update.
+        # Check pypi.org for latest software version.  If newer version found,
+        # inform user.  Repeat message every 10 times progrmm is run.
         self.chkcount = self.dbdic.get('version_check_count', 0)
-        if self.chkcount == 0 and  check_latest_version():
-            self.chkcount += 1
+        if self.chkcount == 0 and check_latest_version():
             msg = check_latest_version()
+            self.chkcount += 1
             msgtitle = 'New version available'
             message(msg, msgtitle, msgtype='Information', showButtons=False)
-        elif self.chkcount < 10 and check_latest_version() :
+        elif self.chkcount < 9:
             self.chkcount += 1
         else:
             self.chkcount = 0

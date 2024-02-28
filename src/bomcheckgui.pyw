@@ -62,18 +62,8 @@ class MainWindow(QMainWindow):
                           'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
 
-        # Check pypi.org for latest software version.  If newer version found,
-        # inform user.  Repeat message every 10 times progrmm is run.
-        self.chkcount = self.dbdic.get('version_check_count', 0)
-        if self.chkcount == 0 and check_latest_version():
-            msg = check_latest_version()
-            self.chkcount += 1
-            msgtitle = 'New version available'
-            message(msg, msgtitle, msgtype='Information', showButtons=False)
-        elif self.chkcount < 9:
-            self.chkcount += 1
-        else:
-            self.chkcount = 0
+        # Check for later software version.  If newer version found, inform user.
+        self.chkcount = check_latest_version(self.dbdic.get('version_check_count', 0))
 
         self.folder = self.dbdic.get('folder', '') # get the working directory where user's bom excel files last came from
 
@@ -1109,20 +1099,75 @@ class DFEditor(QDialog):
 
 
 def showTextFile(filelst):
-      for x in [f for f in filelst if f[-4:].lower() == '.txt']:
-          print(x)
+    '''
+    This function under development
+
+    Parameters
+    ----------
+    filelst : list
+        list of filenames.  Each value is a string.
+
+    Returns
+    -------
+    None.
+
+    '''
+    for x in [f for f in filelst if f[-4:].lower() == '.txt']:
+        print(x)
 
 
-def check_latest_version():
+def check_latest_version(count, intervals=[0, 1, 4, 10, 20]):
+    '''When bomcheckgui is started, check and see if a later version of
+    bomcheckgui and/or bomcheck exist, but don't check every time.  Instead
+    check at various intervals.
+
+    Parameters
+    ----------
+    count : int
+        Keep count of how many times bomcheckgui has been opened, i.e., the
+        variable "count" is incremented.  This incremented value is returned
+        to the function that called check_latest_version().  That function is
+        responsible for storing the count value in a text file.  When
+        bomcheckgui is restared, the restored value of count from the text is
+        given as the first argument of check_latest_verson().
+
+    intervals : list
+        A list of integers.  E.g. something like [0, 1, 10].  Using this list,
+        bomcheckgui will check for a later version if the value of count
+        is found in the list.  When count exceeds the max int value in the
+        list, count is reset to zero.  Thereafter count will start looking in
+        the list afresh.
+
+    Returns
+    -------
+    out : int
+        The incremented value of count is returned.
+
+    '''
+    if count in intervals and latest_version_msg():  # show msg if later version
+        msg = latest_version_msg()
+        count += 1
+        msgtitle = 'New version available'
+        message(msg, msgtitle, msgtype='Information', showButtons=False)
+        return count
+    elif count < max(intervals):
+        count += 1
+        return count
+    else:
+        count = 0
+        return count
+
+
+def latest_version_msg():
     ''' Look on the pypi.org website and check if there is a later version of
-    bomcheck.py available.  If so, inform the user and provide instructions on
-    how he/she can upgrade to the latest version.
-
+    bomcheck.py available.  If so, return a string that provides instructions
+    on how the user can upgrade to the latest version.
 
     Returns
     -------
     out : str
-
+       If no new software version is available, return ''.  Else return a
+       string with instructions about how to upgrade.
     '''
     try:
         package = 'bomcheck'
@@ -1145,20 +1190,21 @@ def check_latest_version():
                              'New version available: ' + latest_version + '\n\n')
             printStr.append('To install it, activate the virtual environment where\n'
                             "bomcheck is installed (see bomcheck's help section\n"
-                            'about installing bomcheck), and enter this in a\n'
-                            'Command Prompt (cmd):\n\n'
+                            "about installing bomcheck), and if you're using\n"
+                            'Windows, enter this in a Command Prompt (cmd):\n\n'
                             'py -m pip install --upgrade bomcheck\n\n\n')
         if lv_gui > cv_gui:
             printStr.append('Installed: bomcheckgui ' + current_version_gui + '\n'
                             'New version available: ' + latest_version_gui + '\n\n')
             printStr.append('To install it, activate the virtual environment where\n'
-                            "bomcheck is installed (see bomcheck's help section\n"
-                            'about installing bomcheck), and enter this in a\n'
-                            'Command Prompt (cmd):\n\n'
+                            "bomcheckgui is installed (see bomcheck's help section\n"
+                            "about installing bomcheck), and if you're using\n"
+                            'Windows, enter this in a Command Prompt (cmd):\n\n'
                             'py -m pip install --upgrade bomcheckgui\n\n\n')
         return ''.join(printStr)
     except requests.ConnectionError:  # No internet connection
         pass
+
 
 app = QApplication(sys.argv)
 

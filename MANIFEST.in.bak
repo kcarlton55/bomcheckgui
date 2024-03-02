@@ -1,0 +1,7 @@
+include *.bat
+include *.md
+include *.txt
+recursive-include help_files *.html
+recursive-include icons *.ico
+recursive-include icons *.png
+recursive-include src *.py

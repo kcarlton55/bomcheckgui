@@ -30,4 +30,5 @@ setup(
     author_email='kencarlton55@gmail.com',
     entry_points={'gui_scripts': ['bomcheckgui=bomcheckgui:MainWindow']},
     keywords='BOM,BOMs,compare,bill,materials,SolidWorks,SyteLine,ERP',
+    include_package_data=True,
 )

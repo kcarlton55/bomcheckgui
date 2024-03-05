@@ -81,12 +81,12 @@ class MainWindow(QMainWindow):
         btn_ac_execute.setStatusTip('Run program')
         toolbar.addAction(btn_ac_execute)
 
-        btn_ac_clear = QAction(qta.icon("ph.eraser-fill", color="#228B22"), 'Clear all', self)
+        btn_ac_clear = QAction(qta.icon("mdi.eraser", color="#228B22"), 'Clear all', self)
         btn_ac_clear.triggered.connect(self.clear)
         btn_ac_clear.setStatusTip('Clear drag-drop zone')
         toolbar.addAction(btn_ac_clear)
 
-        btn_ac_folder = QAction(qta.icon("ri.folder-received-fill", color="#228B22"), "Last used folder", self)
+        btn_ac_folder = QAction(qta.icon("mdi.folder-sync", color="#228B22"), "Last used folder", self)
         btn_ac_folder.triggered.connect(self.openfolder)
         btn_ac_folder.setStatusTip('Open last used folder')
         toolbar.addAction(btn_ac_folder)
@@ -136,16 +136,16 @@ class MainWindow(QMainWindow):
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
 
-        help_action = QAction(qta.icon("mdi6.help-rhombus-outline", color="#228B22"), 'bomcheck_help', self)
+        help_action = QAction(qta.icon("fa.question", color="#228B22"), 'bomcheck_help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
 
-        helpgui_action = QAction(qta.icon("mdi6.help-rhombus-outline", color="#228B22"), 'bomcheckgui help', self)
+        helpgui_action = QAction(qta.icon("fa.question", color="#228B22"), 'bomcheckgui help', self)
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
 
-        helptrb_action = QAction(qta.icon("mdi6.help-rhombus-outline", color="#228B22"), 'Troubleshoot', self)
+        helptrb_action = QAction(qta.icon("fa.question", color="#228B22"), 'Troubleshoot', self)
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
 

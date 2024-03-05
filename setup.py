@@ -24,7 +24,7 @@ setup(
         'Intended Audience :: Manufacturing',
         'Intended Audience :: End Users/Desktop',
         'Operating System :: OS Independent',],
-    install_requires = ['bomcheck>=1.9.6', 'PyQt5>=5.15'],
+    install_requires = ['bomcheck>=1.9.6', 'PyQt5>=5.15', 'qtawesome>=1.0'],
     url='https://github.com/kcarlton55/bomcheckgui',
     author='Kenneth Edward Carlton',
     author_email='kencarlton55@gmail.com',

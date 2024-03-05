@@ -12,14 +12,14 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '1.9.5'
 __author__ = 'Kenneth E. Carlton'
 
-import pdb # use with pdb.set_trace()
+#import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\src')
 import bomcheck
-#import qtawesome as qta  # I did use this, but problems with when using python 3.8
+import qtawesome as qta  # I did use this, but problems with when using python 3.8
 import os.path
 import requests
 from pathlib import Path
@@ -76,17 +76,17 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
 
-        btn_ac_execute = QAction(QIcon('icons/run.png'), 'Run', self)
+        btn_ac_execute = QAction(qta.icon("ei.play", color="#228B22"), 'Run', self)
         btn_ac_execute.triggered.connect(self.execute)
         btn_ac_execute.setStatusTip('Run program')
         toolbar.addAction(btn_ac_execute)
 
-        btn_ac_clear = QAction(QIcon("icons/clear.png"), 'Clear all', self)
+        btn_ac_clear = QAction(qta.icon("ph.eraser-fill", color="#228B22"), 'Clear all', self)
         btn_ac_clear.triggered.connect(self.clear)
         btn_ac_clear.setStatusTip('Clear drag-drop zone')
         toolbar.addAction(btn_ac_clear)
 
-        btn_ac_folder = QAction(QIcon("icons/folder-back.png"), "Last used folder", self)
+        btn_ac_folder = QAction(qta.icon("ri.folder-received-fill", color="#228B22"), "Last used folder", self)
         btn_ac_folder.triggered.connect(self.openfolder)
         btn_ac_folder.setStatusTip('Open last used folder')
         toolbar.addAction(btn_ac_folder)
@@ -118,34 +118,34 @@ class MainWindow(QMainWindow):
         self.csdsc_chkbox.setStatusTip('Case sensitive comparison of descriptions')
         toolbar.addWidget(self.csdsc_chkbox)
 
-        fileopen_action = QAction(QIcon("icons/folder.png"), '&Open', self)
+        fileopen_action = QAction(qta.icon("ei.folder-open", color="#228B22"), '&Open', self)
         fileopen_action.setShortcut(QKeySequence.Open)
         fileopen_action.triggered.connect(self.fileopen)
         file_menu.addAction(fileopen_action)
 
-        execute_action = QAction(QIcon("icons/run.png"), 'Run', self)
+        execute_action = QAction(qta.icon("ei.play", color="#228B22"), 'Run', self)
         execute_action.triggered.connect(self.execute)
         file_menu.addAction(execute_action)
 
-        settings_action = QAction(QIcon("icons/settings.png"), 'Settings', self)
+        settings_action = QAction(qta.icon("fa.gear", color="#228B22"), 'Settings', self)
         settings_action.triggered.connect(self.settings)
         file_menu.addAction(settings_action)
 
-        quit_action = QAction(QIcon("icons/quit.png"), '&Quit', self)
+        quit_action = QAction(qta.icon("mdi.location-exit", color="#CC0000"), '&Quit', self)
         quit_action.setShortcut(QKeySequence.Quit)
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
 
-        help_action = QAction(QIcon("icons/help.png"), 'bomcheck_help', self)
+        help_action = QAction(qta.icon("mdi6.help-rhombus-outline", color="#228B22"), 'bomcheck_help', self)
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
 
-        helpgui_action = QAction(QIcon("icons/help.png"), 'bomcheckgui help', self)
+        helpgui_action = QAction(qta.icon("mdi6.help-rhombus-outline", color="#228B22"), 'bomcheckgui help', self)
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
 
-        helptrb_action = QAction(QIcon("icons/help.png"), 'Troubleshoot', self)
+        helptrb_action = QAction(qta.icon("mdi6.help-rhombus-outline", color="#228B22"), 'Troubleshoot', self)
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
 
@@ -153,11 +153,11 @@ class MainWindow(QMainWindow):
         separator.setSeparator(True)
         help_menu.addAction(separator)
 
-        bcgui_license = QAction(QIcon("icons/info.png"), 'License', self)
+        bcgui_license = QAction(qta.icon("ei.info-circle", color="#228B22"), 'License', self)
         bcgui_license.triggered.connect(self._bcgui_license)
         help_menu.addAction(bcgui_license)
 
-        about_action = QAction(QIcon("icons/info.png"), '&About', self)
+        about_action = QAction(qta.icon("ei.info-circle", color="#228B22"), '&About', self)
         about_action.triggered.connect(self.about)
         help_menu.addAction(about_action)
 

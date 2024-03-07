@@ -10,7 +10,7 @@ with open('README.md', 'r') as fh:
 setup(
     name='bomcheckgui',   # name people will use to pip install
     python_requires='>=3.8',
-    version='1.9.5',
+    version='1.9.6',
     description='gui for bomcheck',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -30,5 +30,4 @@ setup(
     author_email='kencarlton55@gmail.com',
     entry_points={'gui_scripts': ['bomcheckgui=bomcheckgui:MainWindow']},
     keywords='BOM,BOMs,compare,bill,materials,SolidWorks,SyteLine,ERP',
-    include_package_data=True,
 )

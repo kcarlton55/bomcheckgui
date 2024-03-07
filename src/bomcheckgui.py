@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.5'
+__version__ = '1.9.6'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()

@@ -13,6 +13,7 @@ setup(
     version='1.9.6',
     description='gui for bomcheck',
     long_description=long_description,
+    license='GPLv3+',
     long_description_content_type='text/markdown',
     py_modules=['bomcheckgui'],
     package_dir={'': 'src'},

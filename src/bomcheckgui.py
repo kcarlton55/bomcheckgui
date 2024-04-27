@@ -36,8 +36,6 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
                              QTableView, QTextEdit, QToolBar, QVBoxLayout,
                              QItemDelegate, QTableWidget, QHeaderView,
                              QTableWidgetItem, QAbstractItemView)
-
-
 printStrs = []
 
 class MainWindow(QMainWindow):
@@ -326,7 +324,7 @@ class MainWindow(QMainWindow):
         # of bomcheck.cfg file, is sent to function bomcheck.open_help_webpage
 
     def _helpgui(self):
-        bomcheck.view_help('bomcheckgui_help', __version__, dbdic=self.dbdic)  # version here is the bomcheckgui version
+        bomcheck.view_help('bomcheckgui_help', 'main', dbdic=self.dbdic)  # version here is the bomcheckgui version
 
     def _helptroubleshoot(self):
         bomcheck.view_help('bomcheck_troubleshoot', dbdic=self.dbdic)
@@ -1116,7 +1114,7 @@ def showTextFile(filelst):
         print(x)
 
 
-def check_latest_version(count, intervals=[0, 1, 4, 10, 20]):
+def check_latest_version(count, intervals=[10,11]):
     '''When bomcheckgui is started, check and see if a later version of
     bomcheckgui and/or bomcheck exist, but don't check every time.  Instead
     check at various intervals.

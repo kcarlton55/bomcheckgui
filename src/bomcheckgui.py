@@ -40,9 +40,6 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
 
 printStrs = []
 
-def donothing():
-    pass
-
 class MainWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):

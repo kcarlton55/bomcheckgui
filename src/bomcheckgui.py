@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 20 19:47:41 2021
+Created on Wed Jan 20 19:47:42 2021
 
 @author: ken
 
@@ -39,6 +39,9 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
 
 
 printStrs = []
+
+def donothing():
+    pass
 
 class MainWindow(QMainWindow):
 
@@ -326,7 +329,7 @@ class MainWindow(QMainWindow):
         # of bomcheck.cfg file, is sent to function bomcheck.open_help_webpage
 
     def _helpgui(self):
-        bomcheck.view_help('bomcheckgui_help', __version__, dbdic=self.dbdic)  # version here is the bomcheckgui version
+        bomcheck.view_help('bomcheckgui_help', 'main', dbdic=self.dbdic)  # version here is the bomcheckgui version
 
     def _helptroubleshoot(self):
         bomcheck.view_help('bomcheck_troubleshoot', dbdic=self.dbdic)

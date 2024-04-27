@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 20 19:47:41 2021
+Created on Wed Jan 20 19:47:42 2021
 
 @author: ken
 
@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.6'
+__version__ = '1.9.7'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()

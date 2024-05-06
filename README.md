@@ -1,5 +1,4 @@
 # bomcheckgui
-<i>bomcheckgui.py has been converted to exe format.  [Look for it here](https://github.com/kcarlton55/bomcheckgui "bomcheckgui.exe")</i>
 
 ### **What the program does**
 
@@ -25,7 +24,7 @@ To run the program, from the command line, enter:
 ### **How it works**
 
 Drag and drop the BOM files that you want to be checked onto bomcheckgui's
-drag/drop window.  Click the green check mark icon to generate results.
+drag/drop window.  Click the green triangle icon to generate results.
 (See bomcheck's help section for additional information)
 
 ### **bomcheck.cfg**

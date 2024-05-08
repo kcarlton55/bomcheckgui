@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.8'
+__version__ = '1.9.7'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -36,6 +36,8 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
                              QTableView, QTextEdit, QToolBar, QVBoxLayout,
                              QItemDelegate, QTableWidget, QHeaderView,
                              QTableWidgetItem, QAbstractItemView)
+
+
 printStrs = []
 
 class MainWindow(QMainWindow):
@@ -1114,7 +1116,7 @@ def showTextFile(filelst):
         print(x)
 
 
-def check_latest_version(count, intervals=[10,11]):
+def check_latest_version(count, intervals=[0, 1, 4, 10, 20]):
     '''When bomcheckgui is started, check and see if a later version of
     bomcheckgui and/or bomcheck exist, but don't check every time.  Instead
     check at various intervals.

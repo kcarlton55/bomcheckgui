@@ -460,6 +460,11 @@ class SettingsDialog(QDialog):
         self.autosave_chkbox.setChecked(_bool)
         layout.addWidget(self.autosave_chkbox)
 
+        self.mtltest_chkbox = QCheckBox("For pns check if 'Type'≠'Material' when 'Source'='Purchased'.")
+        _bool = self.dbdic.get('mtltest', True)
+        self.mtltest_chkbox.setChecked(_bool)
+        layout.addWidget(self.mtltest_chkbox)
+
         hbox1 = QHBoxLayout()
 
         self.decplcs = QComboBox()
@@ -559,6 +564,10 @@ class SettingsDialog(QDialog):
                     self.dbdic['autosave'] = True
                 else:
                     self.dbdic['autosave'] = False
+                if self.mtltest_chkbox.isChecked():
+                    self.dbdic['mtltest'] = True
+                else:
+                    self.dbdic['mtltest'] = False
 
                 drp = self.drop_input.toPlainText().replace('"', '').replace("'", "")
                 self.dbdic['udrop'] = drp
@@ -827,6 +836,12 @@ class DFwindow(QDialog):
         header = self.view.horizontalHeader()
         header.setDefaultAlignment(Qt.AlignLeft)
 
+        self.setWindowFlags(Qt.Window
+                            | Qt.WindowSystemMenuHint
+                            | Qt.WindowMinimizeButtonHint
+                            | Qt.WindowMaximizeButtonHint
+                            | Qt.WindowCloseButtonHint)
+
         self.buttonPrint = QPushButton('&Print', self)
         self.buttonPrint.setShortcut('Ctrl+P')
         self.buttonPrint.clicked.connect(self.handlePrint)
@@ -1073,7 +1088,7 @@ class TableWidget(QTableWidget):
 
 class DFEditor(QDialog):
     def __init__(self, df, BOMtype, parent=None):
-        super().__init__()
+        super().__init__(parent)
         self.df = df
         mainLayout = QVBoxLayout()
         df.reset_index(inplace=True)
@@ -1086,6 +1101,12 @@ class DFEditor(QDialog):
         mainLayout.addWidget(button_export)
 
         self.setLayout(mainLayout)
+
+        self.setWindowFlags(Qt.Window
+                            | Qt.WindowSystemMenuHint
+                            | Qt.WindowMinimizeButtonHint
+                            | Qt.WindowMaximizeButtonHint
+                            | Qt.WindowCloseButtonHint)
 
     def save_xlsx(self):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="txt (*.txt)",
@@ -1183,23 +1204,37 @@ def latest_version_msg():
         cv_gui = [int(i) for i in current_version_gui.split('.')]
 
         printStr = []
-        if lv > cv:
+        if (lv > cv) and (lv_gui > cv_gui):
             printStr.append('Installed: bomcheck ' + current_version + '\n'
-                             'New version available: ' + latest_version + '\n\n')
-            printStr.append('To install it, activate the virtual environment where\n'
-                            "bomcheck is installed (see bomcheck's help section\n"
-                            "about installing bomcheck), and if you're using\n"
-                            'Windows, enter this in a Command Prompt (cmd):\n\n'
-                            'py -m pip install --upgrade bomcheck\n\n\n')
-        if lv_gui > cv_gui:
+                            'New version available: ' + latest_version + '\n')
             printStr.append('Installed: bomcheckgui ' + current_version_gui + '\n'
                             'New version available: ' + latest_version_gui + '\n\n')
-            printStr.append('To install it, activate the virtual environment where\n'
-                            "bomcheckgui is installed (see bomcheck's help section\n"
-                            "about installing bomcheck), and if you're using\n"
-                            'Windows, enter this in a Command Prompt (cmd):\n\n'
-                            'py -m pip install --upgrade bomcheckgui\n\n\n')
-        return ''.join(printStr)
+            printStr.append("To install new versions, do:\n\n"
+                            "    py getbc.py --upgrade\n\n"
+                            "or activate bomcheck's virtual\n"
+                            "environment and then do:\n\n"
+                            "    py -m pip install --upgrade bomcheck\n"
+                            "    py -m pip install --upgrade bomcheckgui\n\n\n")
+            return ''.join(printStr)
+        elif lv > cv:
+            printStr.append('Installed: bomcheck ' + current_version + '\n'
+                             'New version available: ' + latest_version + '\n\n')
+            printStr.append("To install new version, do:\n\n"
+                            "    py getbc.py --upgrade\n\n"
+                            "or activate bomcheck's virtual\n"
+                            "environment and then do:\n\n"
+                            "    py -m pip install --upgrade bomcheck\n\n\n")
+            return ''.join(printStr)
+        elif lv_gui > cv_gui:
+            printStr.append('Installed: bomcheckgui ' + current_version_gui + '\n'
+                            'New version available: ' + latest_version_gui + '\n\n')
+            printStr.append("To install new version, do:\n\n"
+                            "    py getbc.py --upgrade\n\n"
+                            "or activate bomcheckgui's virtual\n"
+                            "environment and then do:\n\n"
+                            "    py -m pip install --upgrade bomcheckgui\n\n\n")
+            return ''.join(printStr)
+        return ''
     except requests.ConnectionError:  # No internet connection
         pass
 

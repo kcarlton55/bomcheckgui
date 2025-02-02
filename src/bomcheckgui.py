@@ -460,7 +460,7 @@ class SettingsDialog(QDialog):
         self.autosave_chkbox.setChecked(_bool)
         layout.addWidget(self.autosave_chkbox)
 
-        self.mtltest_chkbox = QCheckBox("For pns check if 'Type'≠'Material' when 'Source'='Purchased'.")
+        self.mtltest_chkbox = QCheckBox("For pns check if 'Type'≠'Material'.")
         _bool = self.dbdic.get('mtltest', True)
         self.mtltest_chkbox.setChecked(_bool)
         layout.addWidget(self.mtltest_chkbox)

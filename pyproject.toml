@@ -28,7 +28,7 @@ dependencies = ["bomcheck>=1.9.6", "PyQt5>=5.15", "qtawesome>=1.0", "tomli >= 1.
 license = {text = "GPL-3.0-or-later"}
 
 [project.gui-scripts]
-bomcheck = "bomcheck-gui:main"
+bomcheckgui = "bomcheckgui:MainWindow"
 
 [project.urls]
 Homepage = "https://github.com/kcarlton55/bomcheckgui"

@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.7'
+__version__ = '1.9.9'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -36,8 +36,6 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
                              QTableView, QTextEdit, QToolBar, QVBoxLayout,
                              QItemDelegate, QTableWidget, QHeaderView,
                              QTableWidgetItem, QAbstractItemView)
-
-
 printStrs = []
 
 class MainWindow(QMainWindow):
@@ -127,7 +125,7 @@ class MainWindow(QMainWindow):
         execute_action.triggered.connect(self.execute)
         file_menu.addAction(execute_action)
 
-        settings_action = QAction(qta.icon("fa.gear", color="#228B22"), 'Settings', self)
+        settings_action = QAction(qta.icon("fa6.sun", color="#228B22"), 'Settings', self) # was fa.gear
         settings_action.triggered.connect(self.settings)
         file_menu.addAction(settings_action)
 
@@ -136,16 +134,16 @@ class MainWindow(QMainWindow):
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
 
-        help_action = QAction(qta.icon("fa.question", color="#228B22"), 'bomcheck_help', self)
+        help_action = QAction(qta.icon("fa6.hand-point-right", color="#228B22"), 'bomcheck_help', self) # was fa.question
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
 
-        helpgui_action = QAction(qta.icon("fa.question", color="#228B22"), 'bomcheckgui help', self)
+        helpgui_action = QAction(qta.icon("fa6.hand-point-right", color="#228B22"), 'bomcheckgui help', self)   # was fa.question
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
 
-        helptrb_action = QAction(qta.icon("fa.question", color="#228B22"), 'Troubleshoot', self)
+        helptrb_action = QAction(qta.icon("fa6.hand-point-right", color="#228B22"), 'Troubleshoot', self)  # was fa.question
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
 
@@ -170,18 +168,21 @@ class MainWindow(QMainWindow):
 
     def fileopen(self):
         caption = 'Open file'
-        directory = str(Path.cwd())
-        filter_mask = "Excel files (*_sw.xlsx *_sl.xlsx);;All files (*.*)"
+        try:
+            directory = self.dbdic['folder']  # added 6/16/25
+        except:
+            directory = str(Path.cwd())
+        filter_mask = "BOM files (*_sw.xlsx *_sl.xlsx *_sw.csv);;All files (*.*)"
         initialfilter = "Excel files (*_sw.xlsx *_sl.xlsx)"
         filenames = QFileDialog.getOpenFileNames(self,
             caption, directory, filter_mask, initialfilter)[0]
 
         if filenames:
+            self.dbdic['folder'] = os.path.dirname(filenames[0])  # added 6/16/25
             self.lstbox_view.addItems([str(Path(filename)) for filename in filenames])
 
     def openfolder(self):
         ''' Open the folder determined by variable "self.folder"'''
-
         err = False
         try:   # get BOM folder name from 1st item in drag/drop list
             self.folder = os.path.dirname(self.lstbox_view.item(0).text())
@@ -1137,7 +1138,7 @@ def showTextFile(filelst):
         print(x)
 
 
-def check_latest_version(count, intervals=[0, 1, 4, 10, 20]):
+def check_latest_version(count, intervals=[10,11]):
     '''When bomcheckgui is started, check and see if a later version of
     bomcheckgui and/or bomcheck exist, but don't check every time.  Instead
     check at various intervals.

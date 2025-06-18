@@ -178,8 +178,17 @@ class MainWindow(QMainWindow):
             caption, directory, filter_mask, initialfilter)[0]
 
         if filenames:
-            self.dbdic['folder'] = os.path.dirname(filenames[0])  # added 6/16/25
+            self.folder = os.path.dirname(filenames[0])
+            with open(self.configdb, 'r+') as file:
+                x = file.read()
+                self.dbdic = ast.literal_eval(x)
+                self.dbdic['folder'] = self.folder
+                file.seek(0)
+                file.write(str(self.dbdic))
+                file.truncate()
+            self.folder = self.dbdic['folder']
             self.lstbox_view.addItems([str(Path(filename)) for filename in filenames])
+
 
     def openfolder(self):
         ''' Open the folder determined by variable "self.folder"'''

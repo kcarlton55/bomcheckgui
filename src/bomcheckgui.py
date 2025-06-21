@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '1.9.9'
+__version__ = '2.0.0'
 __author__ = 'Kenneth E. Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         execute_action.triggered.connect(self.execute)
         file_menu.addAction(execute_action)
 
-        settings_action = QAction(qta.icon("fa6.sun", color="#228B22"), 'Settings', self) # was fa.gear
+        settings_action = QAction(qta.icon("ei.wrench-alt", color="#228B22"), 'Settings', self) # was fa.gear, then was fa6.sun
         settings_action.triggered.connect(self.settings)
         file_menu.addAction(settings_action)
 
@@ -134,16 +134,16 @@ class MainWindow(QMainWindow):
         quit_action.triggered.connect(self.close)
         file_menu.addAction(quit_action)
 
-        help_action = QAction(qta.icon("fa6.hand-point-right", color="#228B22"), 'bomcheck_help', self) # was fa.question
+        help_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'bomcheck_help', self) # was fa.question, then was fa6.hand-point-right
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
 
-        helpgui_action = QAction(qta.icon("fa6.hand-point-right", color="#228B22"), 'bomcheckgui help', self)   # was fa.question
+        helpgui_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'bomcheckgui help', self)   # was fa.question, then was fa6.hand-point-right
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
 
-        helptrb_action = QAction(qta.icon("fa6.hand-point-right", color="#228B22"), 'Troubleshoot', self)  # was fa.question
+        helptrb_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'Troubleshoot', self)  # was fa.question, then was fa6.hand-point-right
         helptrb_action.triggered.connect(self._helptroubleshoot)
         help_menu.addAction(helptrb_action)
 
@@ -1152,6 +1152,9 @@ def check_latest_version(count, intervals=[10,11]):
     bomcheckgui and/or bomcheck exist, but don't check every time.  Instead
     check at various intervals.
 
+    >>> NOTE: FOR COUNTS TO BE RECORDED PROPERLY, BOMCHECKGUI NEEDS TO BE
+    OPENED AND RAN, THEN CLOSED.  NOT JUST OPENED AND CLOSED.
+
     Parameters
     ----------
     count : int
@@ -1175,6 +1178,7 @@ def check_latest_version(count, intervals=[10,11]):
         The incremented value of count is returned.
 
     '''
+
     if count in intervals and latest_version_msg():  # show msg if later version
         msg = latest_version_msg()
         count += 1

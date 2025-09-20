@@ -18,6 +18,7 @@ import sys
 import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\src')
+sys.path.insert(0, 'C:\\Users\\a90003183\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
 import bomcheck
 import qtawesome as qta  # I did use this, but problems with when using python 3.8
 import os.path
@@ -37,6 +38,7 @@ from PyQt5.QtWidgets import (QAction, QApplication, QCheckBox, QComboBox, QDialo
                              QItemDelegate, QTableWidget, QHeaderView,
                              QTableWidgetItem, QAbstractItemView)
 printStrs = []
+run_bomcheck = True  # this is a global variable used in merge_index(), MainWindow's execute_search_sm and execute_bomcheck functions
 
 class MainWindow(QMainWindow):
 
@@ -74,17 +76,22 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
 
-        btn_ac_execute = QAction(qta.icon("ei.play", color="#228B22"), 'Run', self)
-        btn_ac_execute.triggered.connect(self.execute)
+        btn_ac_execute = QAction(qta.icon("fa5s.play-circle", color="#228B22"), 'Run', self)
+        btn_ac_execute.triggered.connect(self.execute_bomcheck)
         btn_ac_execute.setStatusTip('Run program')
         toolbar.addAction(btn_ac_execute)
 
-        btn_ac_clear = QAction(qta.icon("mdi.eraser", color="#228B22"), 'Clear all', self)
+        btn_ac_search = QAction(qta.icon("fa6.circle-play", color="#228B22"), 'Search slow moving pts', self)
+        btn_ac_search.triggered.connect(self.execute_search_sm)
+        btn_ac_search.setStatusTip('Search slow moving pts')
+        toolbar.addAction(btn_ac_search)
+
+        btn_ac_clear = QAction(qta.icon("msc.clear-all", color="#228B22"), 'Clear drag-drop zone', self)
         btn_ac_clear.triggered.connect(self.clear)
         btn_ac_clear.setStatusTip('Clear drag-drop zone')
         toolbar.addAction(btn_ac_clear)
 
-        btn_ac_folder = QAction(qta.icon("mdi.folder-sync", color="#228B22"), "Last used folder", self)
+        btn_ac_folder = QAction(qta.icon("mdi6.folder-arrow-right", color="#228B22"), "Open last used folder", self)
         btn_ac_folder.triggered.connect(self.openfolder)
         btn_ac_folder.setStatusTip('Open last used folder')
         toolbar.addAction(btn_ac_folder)
@@ -93,28 +100,98 @@ class MainWindow(QMainWindow):
         empty_label1.setText('   ')
         toolbar.addWidget(empty_label1)
 
-        self.drop_chkbox = QCheckBox('Activate drop list')
-        self.drop_chkbox.setChecked(False)
-        self.drop_chkbox.setStatusTip('Ignore SW parts in drop list  (See File>Settings)')
-        toolbar.addWidget(self.drop_chkbox)
+# =============================================================================
+#         self.drop_chkbox = QCheckBox('Activate drop list')
+#         self.drop_chkbox.setChecked(False)
+#         self.drop_chkbox.setStatusTip('Ignore SW parts in drop list  (See File>Settings)')
+#         toolbar.addWidget(self.drop_chkbox)
+# =============================================================================
 
-        empty_label1 = QLabel()
-        empty_label1.setText('   ')
-        toolbar.addWidget(empty_label1)
 
-        self.cspn_chkbox = QCheckBox('case sensitive part nos.')
-        self.cspn_chkbox.setChecked(False)
-        self.cspn_chkbox.setStatusTip('Case sensitive comparison of part nos.')
-        toolbar.addWidget(self.cspn_chkbox)
+#####################################################################
+        pn_filter_label = QLabel()
+        pn_filter_label.setText('filter sm pts:')
+        pn_filter_label.setStatusTip('....-....-   finds slow moving (sm) pt nos that begin with, for example, 3002-0430 and 6415-0300.  .......  (i.e. 7 dots) will find 3001170 and 2008950.  (filter is regex)' )
+        toolbar.addWidget(pn_filter_label)
 
-        empty_label1 = QLabel()
-        empty_label1.setText('   ')
-        toolbar.addWidget(empty_label1)
+        self.pn_filter_input = QLineEdit()
+        self.pn_filter_input.setText('....-....-')
+        self.pn_filter_input.setFixedWidth(75)
+        self.pn_filter_input.setStatusTip('....-....-   finds slow moving (sm) pt nos that begin with, for example, 3002-0430 and 6415-0300.  .......  (i.e. 7 dots) will find 3001170 and 2008950.  (filter is regex)' )
+        toolbar.addWidget(self.pn_filter_input)
 
-        self.csdsc_chkbox = QCheckBox('case sensitive descriptions')
-        self.csdsc_chkbox.setChecked(False)
-        self.csdsc_chkbox.setStatusTip('Case sensitive comparison of descriptions')
-        toolbar.addWidget(self.csdsc_chkbox)
+
+        descrip_filter_label = QLabel()
+        descrip_filter_label.setText('    filter sm descrips:')
+        descrip_filter_label.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. SS|S/S|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
+        toolbar.addWidget(descrip_filter_label)
+
+        self.descrip_filter_input = QLineEdit()
+        self.descrip_filter_input.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. SS|S/S|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
+        toolbar.addWidget(self.descrip_filter_input)
+
+        self.repeat_chkbox = QCheckBox('   to all descrips')
+        self.repeat_chkbox.setLayoutDirection(Qt.RightToLeft)
+        self.repeat_chkbox.setChecked(False)
+        self.repeat_chkbox.setStatusTip('Also apply descrip filter to SW/SL descrips')
+        toolbar.addWidget(self.repeat_chkbox)
+
+        similarity_filter_label = QLabel()
+        similarity_filter_label.setText('    % similarity:')
+        similarity_filter_label.setStatusTip('% of similarity between SW/SL descrip and SM descrip.  Below this amount will be filtered out.')
+        toolbar.addWidget(similarity_filter_label)
+
+        self.similarity_filter_input = QLineEdit()
+        self.similarity_filter_input.setText('0')
+        self.similarity_filter_input.setFixedWidth(30)
+        self.similarity_filter_input.setStatusTip('% of similarity between SW/SL descrip and SM descrip.  Below this amount will be filtered out.' )
+        toolbar.addWidget(self.similarity_filter_input)
+
+
+        age_filter_label = QLabel()
+        age_filter_label.setText('    age > ')
+        age_filter_label.setStatusTip('Only show slow moving (sm) parts that are greater than a specific age (days)')
+        toolbar.addWidget(age_filter_label)
+
+        self.age_filter_input = QLineEdit()
+        self.age_filter_input.setFixedWidth(50)
+        self.age_filter_input.setStatusTip('Only show slow moving (sm) parts that are greater than a specific age (days)')
+        toolbar.addWidget(self.age_filter_input)
+
+        merge_filter_label = QLabel()
+        merge_filter_label.setText('    merge ')
+        merge_filter_label.setStatusTip('"inner" is union of SW/SL list with SM list.  "right" shows complete SM list')
+        toolbar.addWidget(merge_filter_label)
+
+        self.merge_filter_input = QComboBox()
+        self.merge_filter_input.addItems(['inner', 'right'])
+        self.merge_filter_input.setCurrentText('inner')
+        toolbar.addWidget(self.merge_filter_input)
+
+
+
+####################################################################
+
+
+# =============================================================================
+#         self.cspn_chkbox = QCheckBox('case sensitive part nos.')
+#         self.cspn_chkbox.setChecked(False)
+#         self.cspn_chkbox.setStatusTip('Case sensitive comparison of part nos.')
+#         toolbar.addWidget(self.cspn_chkbox)
+# =============================================================================
+
+# =============================================================================
+#         empty_label1 = QLabel()
+#         empty_label1.setText('   ')
+#         toolbar.addWidget(empty_label1)
+# =============================================================================
+
+# =============================================================================
+#         self.csdsc_chkbox = QCheckBox('case sensitive descriptions')
+#         self.csdsc_chkbox.setChecked(False)
+#         self.csdsc_chkbox.setStatusTip('Case sensitive comparison of descriptions')
+#         toolbar.addWidget(self.csdsc_chkbox)
+# =============================================================================
 
         fileopen_action = QAction(qta.icon("ei.folder-open", color="#228B22"), '&Open', self)
         fileopen_action.setShortcut(QKeySequence.Open)
@@ -172,8 +249,8 @@ class MainWindow(QMainWindow):
             directory = self.dbdic['folder']  # added 6/16/25
         except:
             directory = str(Path.cwd())
-        filter_mask = "BOM files (*_sw.xlsx *_sl.xlsx *_sw.csv);;All files (*.*)"
-        initialfilter = "Excel files (*_sw.xlsx *_sl.xlsx)"
+        filter_mask = "BOMs (*_sw.xlsx *_sl.xlsx *_sw.csv *_sm.xlsx);;All files (*.*)"
+        initialfilter = "Excel files (*_sw.xlsx *_sl.xlsx *_sm.xlsx)"
         filenames = QFileDialog.getOpenFileNames(self,
             caption, directory, filter_mask, initialfilter)[0]
 
@@ -225,6 +302,18 @@ class MainWindow(QMainWindow):
                     message(msg, msgtitle, msgtype='Information')
             except Exception as e:  # it an error occured, moset likely and AttributeError
                 print("Error 103 at MainWindow/openfolder", e)
+
+    def execute_bomcheck(self):
+        global run_bomcheck
+        self.run_bomcheck = True
+        run_bomcheck = True   # run_bomcheck is set as a global variable on line 47
+        self.execute()
+
+    def execute_search_sm(self):
+        global run_bomcheck
+        self.run_bomcheck = False
+        run_bomcheck = False
+        self.execute()
 
     def execute(self):
         global printStrs, standardflow
@@ -284,11 +373,23 @@ class MainWindow(QMainWindow):
             files.append(self.lstbox_view.item(i).text())
 
         if standardflow == True:
-            dfs, df, msg = bomcheck.bomcheck(files, d=self.drop_chkbox.isChecked(),
-                               cspn=self.cspn_chkbox.isChecked(),
-                               csdsc=self.csdsc_chkbox.isChecked(),
+
+
+
+            dfs, df, dfsm, msg = bomcheck.bomcheck(files,
+                               # d=self.drop_chkbox.isChecked(),
+                               # cspn=self.cspn_chkbox.isChecked(),
+                               # csdsc=self.csdsc_chkbox.isChecked(),
                                dbdic = self.dbdic,
-                               x=self.dbdic.get('autosave', False))
+                               x=self.dbdic.get('autosave', False),
+                               run_bomcheck = self.run_bomcheck,
+                               repeat = self.repeat_chkbox.isChecked(),
+                               filter_pn = self.pn_filter_input,
+                               filter_descrip = self.descrip_filter_input,
+                               filter_age = self.age_filter_input,
+                               similarity = self.similarity_filter_input,
+                               merge = self.merge_filter_input.currentText())
+
             showTextFile(files)
 
         else:
@@ -314,17 +415,22 @@ class MainWindow(QMainWindow):
         if msg:
             msgtitle = 'bomcheck discrepancy warning'
             message(str(''.join(msg)), msgtitle)
-        if 'DataFrame' in str(type(df)):
+        if 'DataFrame' in str(type(df)) and self.run_bomcheck:
             df_window = DFwindow(df, self)
             df_window.resize(1175, 800)
             df_window.setWindowTitle('BOMs Compared   (IQDU:  I=Item, Q=Quantity, D=Description, U=U/M)')
             df_window.show()
-        if 'DataFrame' in str(type(dfs)):
+        if 'DataFrame' in str(type(dfs)) and self.run_bomcheck:
             BOMtype='sw'
             df_window = DFEditor(dfs, BOMtype, self)
             df_window.resize(750, 800)
             df_window.setWindowTitle('BOMs from CAD only')
             df_window.exec_()
+            df_window.show()
+        if 'DataFrame' in str(type(dfsm)) and not self.run_bomcheck:
+            df_window = DFwindow(dfsm, self)
+            df_window.resize(1175, 800)
+            df_window.setWindowTitle('Slow Moving parts comparison')
             df_window.show()
 
     def clear(self):
@@ -976,7 +1082,7 @@ def merge_index(df):
     The column 0, 1, 2, 3,... is the index column.  Then, second, this function
     will remove duplicate assy nos. so that the data frame looks like this:
 
-    assy                item
+       assy                item
     0  0300-2022-384       6602-0400-000
     1                      6602-0600-000
     2  2728-2020-908       6600-0025-001
@@ -987,8 +1093,19 @@ def merge_index(df):
     '''
     if df.index.values.tolist()[0] != 0:
         df.reset_index(inplace=True)
-    is_duplicated = df.iloc[:, 0].duplicated()  # False, True, False, False, True, True, False
-    df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated  # where df.iloc[:, 0] is 0300-2022-384, 0300-2022-384, 2728-2020-908, ...
+    #is_duplicated = df.iloc[:, 0].duplicated()  # False, True, False, False, True, True, False
+    #df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated  # where df.iloc[:, 0] is 0300-2022-384, 0300-2022-384, 2728-2020-908, ...
+    #for i in range(df.shape[1]):   # shape[1] = no. of columns.  So, removed dups from all columns
+    #    is_duplicated = df.iloc[:, i].duplicated()  # False, True, False, False, True, True, False
+    #    df.iloc[:, i] = df.iloc[:, i] * ~is_duplicated  # where df.iloc[:, 0] is 0300-2022-384, 0300-2022-384, 2728-2020-908, ...
+
+    iterable = [0] if run_bomcheck else range(df.shape[1])
+
+
+
+    for i in iterable:
+        is_duplicated = df.iloc[:, i] == df.iloc[:, i].shift()
+        df.iloc[:, i] = df.iloc[:, i] * ~is_duplicated
     return df
 
 #############################################################################

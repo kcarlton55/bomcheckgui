@@ -12,7 +12,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '2.1'
 __author__ = 'Kenneth E. Carlton'
 
-#import pdb # use with pdb.set_trace()
+# import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -24,7 +24,7 @@ import qtawesome as qta  # I did use this, but problems with when using python 3
 import os.path
 import requests
 from pathlib import Path
-from bomcheck import export2txt
+from bomcheck import export2xlsx
 from PyQt5 import (QtPrintSupport)
 from PyQt5.QtCore import (QAbstractTableModel, Qt)
 from PyQt5.QtGui import (QColor, QFont, QKeySequence, QPainter, QTextCursor,
@@ -76,17 +76,17 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
 
-        btn_ac_execute = QAction(qta.icon("fa5s.play-circle", color="#228B22"), 'Run', self)
+        btn_ac_execute = QAction(qta.icon("fa5s.play-circle", color="#228B22"), 'Run bomcheck', self)
         btn_ac_execute.triggered.connect(self.execute_bomcheck)
-        btn_ac_execute.setStatusTip('Run program')
+        btn_ac_execute.setStatusTip('Run bomcheck, i.e. compare SW BOM to SL BOM')
         toolbar.addAction(btn_ac_execute)
 
-        btn_ac_search = QAction(qta.icon("fa6.circle-play", color="#228B22"), 'Search slow moving pts', self)
+        btn_ac_search = QAction(qta.icon("fa6.circle-play", color="#228B22"), 'Run comparator', self)
         btn_ac_search.triggered.connect(self.execute_search_sm)
-        btn_ac_search.setStatusTip('Search slow moving pts')
+        btn_ac_search.setStatusTip('Compare SW/SL BOM to SM BOM')
         toolbar.addAction(btn_ac_search)
 
-        btn_ac_clear = QAction(qta.icon("msc.clear-all", color="#228B22"), 'Clear drag-drop zone', self)
+        btn_ac_clear = QAction(qta.icon("fa6s.x", color="#228B22"), 'Clear drag-drop zone', self)
         btn_ac_clear.triggered.connect(self.clear)
         btn_ac_clear.setStatusTip('Clear drag-drop zone')
         toolbar.addAction(btn_ac_clear)
@@ -100,41 +100,28 @@ class MainWindow(QMainWindow):
         empty_label1.setText('   ')
         toolbar.addWidget(empty_label1)
 
-# =============================================================================
-#         self.drop_chkbox = QCheckBox('Activate drop list')
-#         self.drop_chkbox.setChecked(False)
-#         self.drop_chkbox.setStatusTip('Ignore SW parts in drop list  (See File>Settings)')
-#         toolbar.addWidget(self.drop_chkbox)
-# =============================================================================
-
-
 #####################################################################
         pn_filter_label = QLabel()
-        pn_filter_label.setText('filter sm pts:')
+        pn_filter_label.setText('filter:')
         pn_filter_label.setStatusTip('....-....-   finds slow moving (sm) pt nos that begin with, for example, 3002-0430 and 6415-0300.  .......  (i.e. 7 dots) will find 3001170 and 2008950.  (filter is regex)' )
         toolbar.addWidget(pn_filter_label)
 
         self.pn_filter_input = QLineEdit()
         self.pn_filter_input.setText('....-....-')
-        self.pn_filter_input.setFixedWidth(75)
+        self.pn_filter_input.setFixedWidth(250)
         self.pn_filter_input.setStatusTip('....-....-   finds slow moving (sm) pt nos that begin with, for example, 3002-0430 and 6415-0300.  .......  (i.e. 7 dots) will find 3001170 and 2008950.  (filter is regex)' )
         toolbar.addWidget(self.pn_filter_input)
 
-
-        descrip_filter_label = QLabel()
-        descrip_filter_label.setText('    filter sm descrips:')
-        descrip_filter_label.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. SS|S/S|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
-        toolbar.addWidget(descrip_filter_label)
-
-        self.descrip_filter_input = QLineEdit()
-        self.descrip_filter_input.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. SS|S/S|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
-        toolbar.addWidget(self.descrip_filter_input)
-
-        self.repeat_chkbox = QCheckBox('   to all descrips')
-        self.repeat_chkbox.setLayoutDirection(Qt.RightToLeft)
-        self.repeat_chkbox.setChecked(False)
-        self.repeat_chkbox.setStatusTip('Also apply descrip filter to SW/SL descrips')
-        toolbar.addWidget(self.repeat_chkbox)
+# =============================================================================
+#         descrip_filter_label = QLabel()
+#         descrip_filter_label.setText('    filter sm descrips:')
+#         descrip_filter_label.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. S/S|SS|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
+#         toolbar.addWidget(descrip_filter_label)
+# 
+#         self.descrip_filter_input = QLineEdit()
+#         self.descrip_filter_input.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. SS|S/S|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
+#         toolbar.addWidget(self.descrip_filter_input)
+# =============================================================================
 
         similarity_filter_label = QLabel()
         similarity_filter_label.setText('    % similarity:')
@@ -144,34 +131,67 @@ class MainWindow(QMainWindow):
         self.similarity_filter_input = QLineEdit()
         self.similarity_filter_input.setText('0')
         self.similarity_filter_input.setFixedWidth(30)
+        self.similarity_filter_input.setAlignment(Qt.AlignRight)
         self.similarity_filter_input.setStatusTip('% of similarity between SW/SL descrip and SM descrip.  Below this amount will be filtered out.' )
         toolbar.addWidget(self.similarity_filter_input)
 
-
         age_filter_label = QLabel()
         age_filter_label.setText('    age > ')
-        age_filter_label.setStatusTip('Only show slow moving (sm) parts that are greater than a specific age (days)')
+        age_filter_label.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
         toolbar.addWidget(age_filter_label)
 
         self.age_filter_input = QLineEdit()
-        self.age_filter_input.setFixedWidth(50)
-        self.age_filter_input.setStatusTip('Only show slow moving (sm) parts that are greater than a specific age (days)')
+        self.age_filter_input.setText('60')
+        self.age_filter_input.setFixedWidth(35)
+        self.age_filter_input.setAlignment(Qt.AlignRight)
+        self.age_filter_input.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
         toolbar.addWidget(self.age_filter_input)
 
+# =============================================================================
+#         merge_filter_label = QLabel()
+#         merge_filter_label.setText('    merge:')
+#         merge_filter_label.setStatusTip('"inner" is union of SW/SL list with SM list.  "right" shows complete SM list.')
+#         toolbar.addWidget(merge_filter_label)
+# 
+#         self.merge_filter_input = QComboBox()
+#         self.merge_filter_input.addItems(['left', 'inner', 'right'])
+#         self.merge_filter_input.setCurrentText('inner')
+#         toolbar.addWidget(self.merge_filter_input)
+# =============================================================================
+        
         merge_filter_label = QLabel()
-        merge_filter_label.setText('    merge ')
-        merge_filter_label.setStatusTip('"inner" is union of SW/SL list with SM list.  "right" shows complete SM list')
+        merge_filter_label.setText('    switches: ')
+        merge_filter_label.setStatusTip('1) Include On Demand (i.e. needed/scheduled) pns.    2) Include On Hand pns.    3) Do not show pns listed in the drop list.')
         toolbar.addWidget(merge_filter_label)
-
-        self.merge_filter_input = QComboBox()
-        self.merge_filter_input.addItems(['inner', 'right'])
-        self.merge_filter_input.setCurrentText('inner')
-        toolbar.addWidget(self.merge_filter_input)
-
-
-
-####################################################################
-
+        
+# =============================================================================
+#         self.repeat_chkbox = QCheckBox()
+#         self.repeat_chkbox.setLayoutDirection(Qt.RightToLeft)
+#         self.repeat_chkbox.setChecked(False)
+#         self.repeat_chkbox.setStatusTip('Apply the "filter sm descrips" filter to SW/SL parts also.  Default is to only filter SM descrips.')
+#         toolbar.addWidget(self.repeat_chkbox)
+# =============================================================================
+        
+        self.show_demand_chkbox = QCheckBox()
+        self.show_demand_chkbox.setLayoutDirection(Qt.RightToLeft)
+        self.show_demand_chkbox.setText("1)")
+        self.show_demand_chkbox.setChecked(False)
+        self.show_demand_chkbox.setStatusTip('1) Include both On Demand (i.e. needed/scheduled) and No Demand pt nums. The default is to filter out parts where there is a Demand.')
+        toolbar.addWidget(self.show_demand_chkbox)
+        
+        self.onhand_chkbox = QCheckBox()
+        self.onhand_chkbox.setLayoutDirection(Qt.RightToLeft)
+        self.onhand_chkbox.setText(" 2)")
+        self.onhand_chkbox.setChecked(False)
+        self.onhand_chkbox.setStatusTip('2) Include all "Qty On Hand" pt nums. The default is to filter out "Qty On Hand" parts that are zero.')
+        toolbar.addWidget(self.onhand_chkbox)
+        
+        self.drop_chkbox = QCheckBox()
+        self.drop_chkbox.setLayoutDirection(Qt.RightToLeft)
+        self.drop_chkbox.setText(" 3)")
+        self.drop_chkbox.setChecked(True)
+        self.drop_chkbox.setStatusTip('3) Do not show SW/SL/SM parts listed in the drop list (go to "settings" to modify this list).')
+        toolbar.addWidget(self.drop_chkbox)
 
 # =============================================================================
 #         self.cspn_chkbox = QCheckBox('case sensitive part nos.')
@@ -198,8 +218,12 @@ class MainWindow(QMainWindow):
         fileopen_action.triggered.connect(self.fileopen)
         file_menu.addAction(fileopen_action)
 
-        execute_action = QAction(qta.icon("ei.play", color="#228B22"), 'Run', self)
-        execute_action.triggered.connect(self.execute)
+        execute_action = QAction(qta.icon("fa5s.play-circle", color="#228B22"), 'Run bomcheck', self)
+        execute_action.triggered.connect(self.execute_bomcheck)
+        file_menu.addAction(execute_action)
+        
+        execute_action = QAction(qta.icon("fa6.circle-play", color="#228B22"), 'Run comparator', self)
+        execute_action.triggered.connect(self.execute_search_sm)
         file_menu.addAction(execute_action)
 
         settings_action = QAction(qta.icon("ei.wrench-alt", color="#228B22"), 'Settings', self) # was fa.gear, then was fa6.sun
@@ -373,22 +397,22 @@ class MainWindow(QMainWindow):
             files.append(self.lstbox_view.item(i).text())
 
         if standardflow == True:
-
-
-
             dfs, df, dfsm, msg = bomcheck.bomcheck(files,
-                               # d=self.drop_chkbox.isChecked(),
+                               d=self.drop_chkbox.isChecked(),
                                # cspn=self.cspn_chkbox.isChecked(),
                                # csdsc=self.csdsc_chkbox.isChecked(),
                                dbdic = self.dbdic,
                                x=self.dbdic.get('autosave', False),
-                               run_bomcheck = self.run_bomcheck,
-                               repeat = self.repeat_chkbox.isChecked(),
+                               run_bomcheck = self.run_bomcheck,             
                                filter_pn = self.pn_filter_input,
-                               filter_descrip = self.descrip_filter_input,
+                               #filter_descrip = self.descrip_filter_input,
+                               similar = self.similarity_filter_input,
                                filter_age = self.age_filter_input,
-                               similarity = self.similarity_filter_input,
-                               merge = self.merge_filter_input.currentText())
+                               #merge = self.merge_filter_input.currentText(),
+                               #repeat = self.repeat_chkbox.isChecked(),
+                               show_demand = self.show_demand_chkbox.isChecked(),
+                               on_hand = self.onhand_chkbox.isChecked()
+                               )
 
             showTextFile(files)
 
@@ -429,7 +453,7 @@ class MainWindow(QMainWindow):
             df_window.show()
         if 'DataFrame' in str(type(dfsm)) and not self.run_bomcheck:
             df_window = DFwindow(dfsm, self)
-            df_window.resize(1175, 800)
+            df_window.resize(1175, 800)         
             df_window.setWindowTitle('Slow Moving parts comparison')
             df_window.show()
 
@@ -568,15 +592,12 @@ class SettingsDialog(QDialog):
         except Exception as e:  # it an error occured, moset likely and AttributeError
             print("error8 at SettingsDialog", e)
 
-        self.ask_chkbox = QCheckBox('Ask what name the bomcheck file should be.')
-        _bool = self.dbdic.get('ask', False)
-        self.ask_chkbox.setChecked(_bool)
-        layout.addWidget(self.ask_chkbox)
-
-        self.autosave_chkbox = QCheckBox('Automatically save results to a txt file.')
-        _bool = self.dbdic.get('autosave', False)
-        self.autosave_chkbox.setChecked(_bool)
-        layout.addWidget(self.autosave_chkbox)
+# =============================================================================
+#         self.ask_chkbox = QCheckBox('Ask what name the bomcheck file should be.')
+#         _bool = self.dbdic.get('ask', False)
+#         self.ask_chkbox.setChecked(_bool)
+#         layout.addWidget(self.ask_chkbox)
+# =============================================================================
 
         self.mtltest_chkbox = QCheckBox("For pns check if 'Type'≠'Material'.")
         _bool = self.dbdic.get('mtltest', True)
@@ -623,7 +644,7 @@ class SettingsDialog(QDialog):
         layout.addLayout(hbox2)
 
         drop_label = QLabel()
-        drop_label.setText('drop list (Ignore these pt. nos. shown in BOMs):')
+        drop_label.setText('drop list (Don\'t show these pt. nos. during SM pts. comparison.  (Filter type is "glob".)')
         layout.addWidget(drop_label)
 
         self.drop_input = QTextEdit()
@@ -674,14 +695,16 @@ class SettingsDialog(QDialog):
             with open(self.configdb, "r+") as file:
                 x = file.read()
                 self.dbdic = ast.literal_eval(x)
-                if self.ask_chkbox.isChecked():
-                    self.dbdic['ask'] = True
-                else:
-                    self.dbdic['ask'] = False
-                if self.autosave_chkbox.isChecked():
-                    self.dbdic['autosave'] = True
-                else:
-                    self.dbdic['autosave'] = False
+# =============================================================================
+#                 if self.ask_chkbox.isChecked():
+#                     self.dbdic['ask'] = True
+#                 else:
+#                     self.dbdic['ask'] = False
+#                 if self.autosave_chkbox.isChecked():
+#                     self.dbdic['autosave'] = True
+#                 else:
+#                     self.dbdic['autosave'] = False
+# =============================================================================
                 if self.mtltest_chkbox.isChecked():
                     self.dbdic['mtltest'] = True
                 else:
@@ -940,11 +963,13 @@ class DFwindow(QDialog):
     '''
     def __init__(self, df, parent=None):
         super(DFwindow, self).__init__(parent)
-
+        
         self.df_xlsx = df.copy()  # make a copy.  This will be used to save to an txt file
         self.df = merge_index(df)  # use for disply to user and for printing
         self.columnLabels = self.df.columns
         model = DFmodel(self.df, self)
+        
+
 
         self.view = QTableView(self)
         self.view.setModel(model)
@@ -967,10 +992,10 @@ class DFwindow(QDialog):
         self.buttonPreview = QPushButton('Print Preview', self)
         self.buttonPreview.clicked.connect(self.handlePreview)
 
-        self.save_as_xlsx = QPushButton('&Save as .txt', self)
+        self.save_as_xlsx = QPushButton('&Save as .xlsx', self)
         self.save_as_xlsx.setShortcut('Ctrl+S')
         self.save_as_xlsx.clicked.connect(self.save_xlsx)
-
+        
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.reject)
 
@@ -1027,12 +1052,12 @@ class DFwindow(QDialog):
         document.print_(printer)
 
     def save_xlsx(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="txt (*.txt)",
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="Excel (*.xlsx)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
         f, e = os.path.splitext(f)
-        results2export = [('BOM Check', self.df_xlsx)]
-        export2txt(dirname, f, results2export)
+        results2export =  self.df_xlsx
+        export2xlsx(dirname, f, results2export)
 
 
 class DFmodel(QAbstractTableModel):
@@ -1091,25 +1116,23 @@ def merge_index(df):
     5                      7215-0200-001
     6  6890-ACV0098372-01  2915-0050-000
     '''
+     
     if df.index.values.tolist()[0] != 0:
         df.reset_index(inplace=True)
-    #is_duplicated = df.iloc[:, 0].duplicated()  # False, True, False, False, True, True, False
-    #df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated  # where df.iloc[:, 0] is 0300-2022-384, 0300-2022-384, 2728-2020-908, ...
-    #for i in range(df.shape[1]):   # shape[1] = no. of columns.  So, removed dups from all columns
-    #    is_duplicated = df.iloc[:, i].duplicated()  # False, True, False, False, True, True, False
-    #    df.iloc[:, i] = df.iloc[:, i] * ~is_duplicated  # where df.iloc[:, 0] is 0300-2022-384, 0300-2022-384, 2728-2020-908, ...
-
-    iterable = [0] if run_bomcheck else range(df.shape[1])
-
-
-
-    for i in iterable:
-        is_duplicated = df.iloc[:, i] == df.iloc[:, i].shift()
-        df.iloc[:, i] = df.iloc[:, i] * ~is_duplicated
+    
+    # Eliminate duplicate strings in first column.  If a sm parts dataframe,
+    # eliminate corresponding values in the 'descrip sw/sl' and 'cost' columns.
+    s = df.iloc[:, 0].copy()
+    is_duplicated = df.iloc[:, 0].duplicated()
+    df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated
+    filter = s == df.iloc[:, 0]
+    if 'descrip sw/sl' in df.columns:
+        df['descrip sw/sl'] = df['descrip sw/sl'] * filter
+    if 'cost_' in df.columns:
+        df['cost_'] = df['cost_'] * filter
+    
     return df
 
-#############################################################################
-# ref: https://www.youtube.com/watch?v=zrXFhHE-Ysg
 
 class FloatDelegate(QItemDelegate):
     def __init__(self, parent=None):

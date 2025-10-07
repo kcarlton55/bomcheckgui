@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
         
         merge_filter_label = QLabel()
         merge_filter_label.setText('    switches: ')
-        merge_filter_label.setStatusTip('1) Include On Demand (i.e. needed/scheduled) pns.    2) Include On Hand pns.    3) Do not show pns listed in the drop list.')
+        merge_filter_label.setStatusTip('1) Include Demand (scheduled) pns.    2) Include On Hand pns.    3) Do not show pns listed in the drop list.')
         toolbar.addWidget(merge_filter_label)
         
 # =============================================================================
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
         self.show_demand_chkbox.setLayoutDirection(Qt.RightToLeft)
         self.show_demand_chkbox.setText("1)")
         self.show_demand_chkbox.setChecked(False)
-        self.show_demand_chkbox.setStatusTip('1) Include both On Demand (i.e. needed/scheduled) and No Demand pt nums. The default is to filter out parts where there is a Demand.')
+        self.show_demand_chkbox.setStatusTip('1) Include both Demand (i.e. scheduled) and No Demand pt nums. The default is to filter out parts that have a Demand.')
         toolbar.addWidget(self.show_demand_chkbox)
         
         self.onhand_chkbox = QCheckBox()
@@ -243,6 +243,10 @@ class MainWindow(QMainWindow):
         helpgui_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'bomcheckgui help', self)   # was fa.question, then was fa6.hand-point-right
         helpgui_action.triggered.connect(self._helpgui)
         help_menu.addAction(helpgui_action)
+        
+        helpslow_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'slow moving help', self)   # was fa.question, then was fa6.hand-point-right
+        helpslow_action.triggered.connect(self._helpslow)
+        help_menu.addAction(helpslow_action)
 
         helptrb_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'Troubleshoot', self)  # was fa.question, then was fa6.hand-point-right
         helptrb_action.triggered.connect(self._helptroubleshoot)
@@ -467,9 +471,12 @@ class MainWindow(QMainWindow):
 
     def _helpgui(self):
         bomcheck.view_help('bomcheckgui_help', 'main', dbdic=self.dbdic)  # version here is the bomcheckgui version
+        
+    def _helpslow(self):
+        bomcheck.view_help('slowmoving_help', 'main', dbdic=self.dbdic)         
 
     def _helptroubleshoot(self):
-        bomcheck.view_help('bomcheck_troubleshoot', dbdic=self.dbdic)
+        bomcheck.view_help('bomcheck_help', dbdic=self.dbdic)
 
     def _bcgui_license(self):
         bomcheck.view_help('license')
@@ -992,7 +999,7 @@ class DFwindow(QDialog):
         self.buttonPreview = QPushButton('Print Preview', self)
         self.buttonPreview.clicked.connect(self.handlePreview)
 
-        self.save_as_xlsx = QPushButton('&Save as .xlsx', self)
+        self.save_as_xlsx = QPushButton('&Export to .xlsx', self)
         self.save_as_xlsx.setShortcut('Ctrl+S')
         self.save_as_xlsx.clicked.connect(self.save_xlsx)
         

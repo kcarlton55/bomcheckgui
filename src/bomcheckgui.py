@@ -470,13 +470,13 @@ class MainWindow(QMainWindow):
         # of bomcheck.cfg file, is sent to function bomcheck.open_help_webpage
 
     def _helpgui(self):
-        bomcheck.view_help('bomcheckgui_help', 'main', dbdic=self.dbdic)  # version here is the bomcheckgui version
+        bomcheck.view_help('bomcheckgui_help', 'master', dbdic=self.dbdic)  # version here is the bomcheckgui version
         
     def _helpslow(self):
-        bomcheck.view_help('slowmoving_help', 'main', dbdic=self.dbdic)         
+        bomcheck.view_help('slowmoving_help', 'master', dbdic=self.dbdic)         
 
     def _helptroubleshoot(self):
-        bomcheck.view_help('bomcheck_help', dbdic=self.dbdic)
+        bomcheck.view_help('bomcheck_troubleshoot', dbdic=self.dbdic)
 
     def _bcgui_license(self):
         bomcheck.view_help('license')

@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '2.1'
+__version__ = '2.2'
 __author__ = 'Kenneth E. Carlton'
 
 # import pdb # use with pdb.set_trace()
@@ -17,8 +17,8 @@ import ast
 import sys
 import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
-sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\src')
-sys.path.insert(0, 'C:\\Users\\a90003183\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
+sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\\src')
+sys.path.insert(0, 'C:\\Users\\a90003183\\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
 import bomcheck
 import qtawesome as qta  # I did use this, but problems with when using python 3.8
 import os.path

@@ -12,7 +12,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '2.2'
 __author__ = 'Kenneth E. Carlton'
 
-# import pdb # use with pdb.set_trace()
+import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
                    "Otherwise the program will run as normal.\n\n" + str(e))
             msgtitle = 'Warning'
             message(msg, msgtitle, msgtype='Warning', showButtons=False)
-            self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 'ask': False,
+            self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 
                           'folder': '', 'file2save2': 'bomcheck'}
             self.configdb = ''
 
@@ -192,26 +192,6 @@ class MainWindow(QMainWindow):
         self.drop_chkbox.setChecked(True)
         self.drop_chkbox.setStatusTip('3) Do not show SW/SL/SM parts listed in the drop list (go to "settings" to modify this list).')
         toolbar.addWidget(self.drop_chkbox)
-
-# =============================================================================
-#         self.cspn_chkbox = QCheckBox('case sensitive part nos.')
-#         self.cspn_chkbox.setChecked(False)
-#         self.cspn_chkbox.setStatusTip('Case sensitive comparison of part nos.')
-#         toolbar.addWidget(self.cspn_chkbox)
-# =============================================================================
-
-# =============================================================================
-#         empty_label1 = QLabel()
-#         empty_label1.setText('   ')
-#         toolbar.addWidget(empty_label1)
-# =============================================================================
-
-# =============================================================================
-#         self.csdsc_chkbox = QCheckBox('case sensitive descriptions')
-#         self.csdsc_chkbox.setChecked(False)
-#         self.csdsc_chkbox.setStatusTip('Case sensitive comparison of descriptions')
-#         toolbar.addWidget(self.csdsc_chkbox)
-# =============================================================================
 
         fileopen_action = QAction(qta.icon("ei.folder-open", color="#228B22"), '&Open', self)
         fileopen_action.setShortcut(QKeySequence.Open)
@@ -362,37 +342,23 @@ class MainWindow(QMainWindow):
         except Exception as e:  # it an error occured, moset likely and AttributeError
             print("error5 at MainWindow/execute", e)
 
-        ask = self.dbdic.get('ask', False)
         defaultfname = self.getdefaultfname()
-
-        if ask:
-            standardflow = False
-            # AskDialog sets standardflow, a global variable, to True if user hits the OK button
-            dlg = AskDialog(defaultfname)  # call up the dialog box to add a new record.
-            dlg.exec_()
-            try:
-                with open(self.configdb, 'r') as file:
-                    x = file.read()
-                    self.dbdic = ast.literal_eval(x)
-            except Exception as e:  # it an error occured, moset likely and AttributeError
-                print("error10 at MainWindow/execute", e)
-        else:
-            standardflow = True
-            try:
-                with open(self.configdb, 'r+') as file:
-                    x = file.read()
-                    self.dbdic = ast.literal_eval(x)
-                    self.dbdic['file2save2'] = defaultfname
-                    file.seek(0)
-                    file.write(str(self.dbdic))
-                    file.truncate()
-            except Exception as e:  # it an error occured, moset likely and AttributeError
-                   msg = ("Error 102:\n\n"
-                   "Unable to read/write to config.txt in order to record the\n"
-                   "folder location the last folder containing BOMs.\n"
-                   "Otherwise the program will run as normal.\n\n" + str(e))
-                   msgtitle = 'Warning'
-                   message(msg, msgtitle, msgtype='Warning', showButtons=False)
+        standardflow = True
+        try:
+            with open(self.configdb, 'r+') as file:
+                x = file.read()
+                self.dbdic = ast.literal_eval(x)
+                self.dbdic['file2save2'] = defaultfname
+                file.seek(0)
+                file.write(str(self.dbdic))
+                file.truncate()
+        except Exception as e:  # it an error occured, moset likely and AttributeError
+               msg = ("Error 102:\n\n"
+               "Unable to read/write to config.txt in order to record the\n"
+               "folder location the last folder containing BOMs.\n"
+               "Otherwise the program will run as normal.\n\n" + str(e))
+               msgtitle = 'Warning'
+               message(msg, msgtitle, msgtype='Warning', showButtons=False)
 
         self.createdfile = ''
         files = []
@@ -403,17 +369,12 @@ class MainWindow(QMainWindow):
         if standardflow == True:
             dfs, df, dfsm, msg = bomcheck.bomcheck(files,
                                d=self.drop_chkbox.isChecked(),
-                               # cspn=self.cspn_chkbox.isChecked(),
-                               # csdsc=self.csdsc_chkbox.isChecked(),
                                dbdic = self.dbdic,
                                x=self.dbdic.get('autosave', False),
                                run_bomcheck = self.run_bomcheck,             
                                filter_pn = self.pn_filter_input,
-                               #filter_descrip = self.descrip_filter_input,
                                similar = self.similarity_filter_input,
                                filter_age = self.age_filter_input,
-                               #merge = self.merge_filter_input.currentText(),
-                               #repeat = self.repeat_chkbox.isChecked(),
                                show_demand = self.show_demand_chkbox.isChecked(),
                                on_hand = self.onhand_chkbox.isChecked()
                                )
@@ -524,60 +485,6 @@ def get_version():
     return __version__
 
 
-class AskDialog(QDialog):
-    ''' A dialog box asking the user what the output filename should be.
-    '''
-    def __init__(self, default):
-        super(AskDialog, self).__init__()
-
-        global standardflow
-        standardflow = False  # Assumes that the user won't hit the OK button
-
-        self.setWindowTitle('Filename for results?')
-        self.setFixedWidth(350)
-        self.setFixedHeight(150)
-
-        layout = QVBoxLayout()
-
-        self.fnameinput = QLineEdit()
-        self.fnameinput.setPlaceholderText('Filename for the bomcheck file')
-        self.fnameinput.setMaxLength(40)
-        self.fnameinput.setText(default)
-        layout.addWidget(self.fnameinput)
-
-        self.QBtn = QPushButton('text-align:center')
-        self.QBtn.setText("OK")
-        self.QBtn.setMaximumWidth(75)
-        self.QBtn.clicked.connect(self.fname)
-
-        hbox = QHBoxLayout()
-        hbox.addWidget(self.QBtn)
-        layout.addLayout(hbox)
-        self.setLayout(layout)
-
-    def fname(self):
-        global standardflow
-
-        askfname = self.fnameinput.text()
-        if askfname.strip() == '':
-            askfname = 'bomcheck'
-        askfname = os.path.splitext(os.path.basename(askfname))[0]
-
-        configdb = get_configfn()
-        try:
-            with open(configdb, 'r+') as file:
-                x = file.read()
-                self.dbdic = ast.literal_eval(x)
-                self.dbdic['file2save2'] = askfname
-                file.seek(0)
-                file.write(str(self.dbdic))
-                file.truncate()
-        except Exception as e:  # if an error occured, moset likely and AttributeError
-            print("Error 103 at AskDialog\n\n", e)
-        standardflow = True
-        self.close()
-
-
 class SettingsDialog(QDialog):
     ''' A dialog box asking the user what the settings he would like to make.
     '''
@@ -598,13 +505,6 @@ class SettingsDialog(QDialog):
             self.dbdic = ast.literal_eval(x)
         except Exception as e:  # it an error occured, moset likely and AttributeError
             print("error8 at SettingsDialog", e)
-
-# =============================================================================
-#         self.ask_chkbox = QCheckBox('Ask what name the bomcheck file should be.')
-#         _bool = self.dbdic.get('ask', False)
-#         self.ask_chkbox.setChecked(_bool)
-#         layout.addWidget(self.ask_chkbox)
-# =============================================================================
 
         self.mtltest_chkbox = QCheckBox("For pns check if 'Type'≠'Material'.")
         _bool = self.dbdic.get('mtltest', True)
@@ -702,16 +602,6 @@ class SettingsDialog(QDialog):
             with open(self.configdb, "r+") as file:
                 x = file.read()
                 self.dbdic = ast.literal_eval(x)
-# =============================================================================
-#                 if self.ask_chkbox.isChecked():
-#                     self.dbdic['ask'] = True
-#                 else:
-#                     self.dbdic['ask'] = False
-#                 if self.autosave_chkbox.isChecked():
-#                     self.dbdic['autosave'] = True
-#                 else:
-#                     self.dbdic['autosave'] = False
-# =============================================================================
                 if self.mtltest_chkbox.isChecked():
                     self.dbdic['mtltest'] = True
                 else:
@@ -760,7 +650,6 @@ class AboutDialog(QDialog):
                      '(bomcheck is incorporated within bomcheckgui)\n\n'
                      'Author: Ken Carlton, 1/27/2021\n'
                      'kencarlton55@gmail.com\n\n'
-                     #'bomcheckgui home: <a href="https://github.com/kcarlton55/bomcheckgui">https://github.com/kcarlton55/bomcheckgui</a>'
                      'bomcheckgui home:\n    https://github.com/kcarlton55/bomcheckgui \n'
                      'bomcheckgui source code:\n    https://github.com/kcarlton55/bomcheckgui/blob/' + __version__  + '/src/bomcheckgui.py \n\n'
                      'bomcheck home:\n    https://github.com/kcarlton55/bomcheck \n'
@@ -775,7 +664,6 @@ class AboutDialog(QDialog):
         layout = QVBoxLayout()
         qmsg = QLabel(msg)
         qmsg.setTextInteractionFlags(Qt.LinksAccessibleByMouse | Qt.TextSelectableByMouse)
-        #qmsg.setOpenExternalLinks(True)
         layout.addWidget(qmsg)
         layout.addWidget(self.buttonBox)
         self.setLayout(layout)
@@ -971,7 +859,7 @@ class DFwindow(QDialog):
     def __init__(self, df, parent=None):
         super(DFwindow, self).__init__(parent)
         
-        self.df_xlsx = df.copy()  # make a copy.  This will be used to save to an txt file
+        self.df_xlsx = df.copy(deep=True)  # make a copy.  This will be used to save to an txt file      
         self.df = merge_index(df)  # use for disply to user and for printing
         self.columnLabels = self.df.columns
         model = DFmodel(self.df, self)
@@ -1058,14 +946,22 @@ class DFwindow(QDialog):
         printer.setPaperSize(QtPrintSupport.QPrinter.Letter)
         document.print_(printer)
 
-    def save_xlsx(self):
+    def save_xlsx_obs(self):
+        print('ccc')
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="Excel (*.xlsx)",
                                     options=QFileDialog.DontConfirmOverwrite)
         dirname, f = os.path.split(filename)
         f, e = os.path.splitext(f)
         results2export =  self.df_xlsx
         export2xlsx(dirname, f, results2export)
-
+        
+    def save_xlsx (self):
+        print('bbb')
+        print(self.df_xlsx.head())
+        
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="Excel (*.xlsx)")
+        export2xlsx(filename, self.df_xlsx, run_bomcheck)
+        
 
 class DFmodel(QAbstractTableModel):
     ''' Enables a Pandas DataFrame to be able to be shown in a GUI window.
@@ -1211,6 +1107,16 @@ class TableWidget(QTableWidget):
     def updateDF(self, row, column):
         text = self.item(row, column).text().strip()
         if self.df.columns[column]=='Op':
+            for i in range(row, self.rowCount()):  # make op no. same for all pns for a particular assy no.
+                self.item(i, column).setText(text)
+                self.df.iloc[row, column] = text
+                try:
+                    textAtColumn0 = self.item(i+1, 0).text()  # In column 0, textAtColunn0 = '' or an assy pn.
+                    if textAtColumn0:
+                        break        # stop remplacing op nos. if a different assy no. listed, i.e. not ''
+                except:
+                    pass  #tried to exceed the no. of rows in a table              
+        if self.df.columns[column]=='WC':
             for i in range(row, self.rowCount()):  # make op no. same for all pns for a particular assy no.
                 self.item(i, column).setText(text)
                 self.df.iloc[row, column] = text

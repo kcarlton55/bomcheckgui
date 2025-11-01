@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
             message(str(''.join(msg)), msgtitle)
         if 'DataFrame' in str(type(df)) and self.run_bomcheck:
             df_window = DFwindow(df, self)
-            df_window.resize(1175, 800)
+            df_window.resize(1000, 800)
             df_window.setWindowTitle('BOMs Compared   (IQDU:  I=Item, Q=Quantity, D=Description, U=U/M)')
             df_window.show()
         if 'DataFrame' in str(type(dfs)) and self.run_bomcheck:
@@ -418,7 +418,7 @@ class MainWindow(QMainWindow):
             df_window.show()
         if 'DataFrame' in str(type(dfsm)) and not self.run_bomcheck:
             df_window = DFwindow(dfsm, self)
-            df_window.resize(1175, 800)         
+            df_window.resize(1125, 800)         
             df_window.setWindowTitle('Slow Moving parts comparison')
             df_window.show()
 

@@ -945,21 +945,10 @@ class DFwindow(QDialog):
 
         printer.setPaperSize(QtPrintSupport.QPrinter.Letter)
         document.print_(printer)
-
-    def save_xlsx_obs(self):
-        print('ccc')
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="Excel (*.xlsx)",
-                                    options=QFileDialog.DontConfirmOverwrite)
-        dirname, f = os.path.split(filename)
-        f, e = os.path.splitext(f)
-        results2export =  self.df_xlsx
-        export2xlsx(dirname, f, results2export)
-        
-    def save_xlsx (self):
-        print('bbb')
-        print(self.df_xlsx.head())
-        
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="Excel (*.xlsx)")
+      
+    def save_xlsx (self): 
+        filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
         export2xlsx(filename, self.df_xlsx, run_bomcheck)
         
 

@@ -372,9 +372,9 @@ class MainWindow(QMainWindow):
                                dbdic = self.dbdic,
                                x=self.dbdic.get('autosave', False),
                                run_bomcheck = self.run_bomcheck,             
-                               filter_pn = self.pn_filter_input,
-                               similar = self.similarity_filter_input,
-                               filter_age = self.age_filter_input,
+                               filter_pn = self.pn_filter_input.text(),
+                               similar = self.similarity_filter_input.text(),
+                               filter_age = self.age_filter_input.text(),
                                show_demand = self.show_demand_chkbox.isChecked(),
                                on_hand = self.onhand_chkbox.isChecked()
                                )

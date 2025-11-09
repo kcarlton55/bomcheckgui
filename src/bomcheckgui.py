@@ -3,16 +3,16 @@
 """
 Created on Wed Jan 20 19:47:42 2021
 
-@author: ken
+@author: Ken Carlton
 
 A graphical user interface for the bomcheck.py program.
 
 """
 
 __version__ = '2.2'
-__author__ = 'Kenneth E. Carlton'
+__author__ = 'Ken Carlton'
 
-import pdb # use with pdb.set_trace()
+#import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -112,17 +112,6 @@ class MainWindow(QMainWindow):
         self.pn_filter_input.setStatusTip('....-....-   finds slow moving (sm) pt nos that begin with, for example, 3002-0430 and 6415-0300.  .......  (i.e. 7 dots) will find 3001170 and 2008950.  (filter is regex)' )
         toolbar.addWidget(self.pn_filter_input)
 
-# =============================================================================
-#         descrip_filter_label = QLabel()
-#         descrip_filter_label.setText('    filter sm descrips:')
-#         descrip_filter_label.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. S/S|SS|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
-#         toolbar.addWidget(descrip_filter_label)
-# 
-#         self.descrip_filter_input = QLineEdit()
-#         self.descrip_filter_input.setStatusTip('Filter descrip of sm parts so that only certain parts show; e.g. SS|S/S|304|316&N7|NEMA 7    (which means: (SS or S/S or 304 or 316) and (N7 or NEMA 7) )  (filter is regex)')
-#         toolbar.addWidget(self.descrip_filter_input)
-# =============================================================================
-
         similarity_filter_label = QLabel()
         similarity_filter_label.setText('    % similarity:')
         similarity_filter_label.setStatusTip('% of similarity between SW/SL descrip and SM descrip.  Below this amount will be filtered out.')
@@ -141,37 +130,17 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(age_filter_label)
 
         self.age_filter_input = QLineEdit()
-        self.age_filter_input.setText('60')
+        self.age_filter_input.setText('90')
         self.age_filter_input.setFixedWidth(35)
         self.age_filter_input.setAlignment(Qt.AlignRight)
         self.age_filter_input.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
         toolbar.addWidget(self.age_filter_input)
-
-# =============================================================================
-#         merge_filter_label = QLabel()
-#         merge_filter_label.setText('    merge:')
-#         merge_filter_label.setStatusTip('"inner" is union of SW/SL list with SM list.  "right" shows complete SM list.')
-#         toolbar.addWidget(merge_filter_label)
-# 
-#         self.merge_filter_input = QComboBox()
-#         self.merge_filter_input.addItems(['left', 'inner', 'right'])
-#         self.merge_filter_input.setCurrentText('inner')
-#         toolbar.addWidget(self.merge_filter_input)
-# =============================================================================
         
         merge_filter_label = QLabel()
         merge_filter_label.setText('    switches: ')
-        merge_filter_label.setStatusTip('1) Include Demand (scheduled) pns.    2) Include On Hand pns.    3) Do not show pns listed in the drop list.')
+        merge_filter_label.setStatusTip('1) Include Demand (scheduled) pns.    2) Include On Hand pns.    3) Ignore drop list settings.')
         toolbar.addWidget(merge_filter_label)
-        
-# =============================================================================
-#         self.repeat_chkbox = QCheckBox()
-#         self.repeat_chkbox.setLayoutDirection(Qt.RightToLeft)
-#         self.repeat_chkbox.setChecked(False)
-#         self.repeat_chkbox.setStatusTip('Apply the "filter sm descrips" filter to SW/SL parts also.  Default is to only filter SM descrips.')
-#         toolbar.addWidget(self.repeat_chkbox)
-# =============================================================================
-        
+                
         self.show_demand_chkbox = QCheckBox()
         self.show_demand_chkbox.setLayoutDirection(Qt.RightToLeft)
         self.show_demand_chkbox.setText("1)")
@@ -189,8 +158,8 @@ class MainWindow(QMainWindow):
         self.drop_chkbox = QCheckBox()
         self.drop_chkbox.setLayoutDirection(Qt.RightToLeft)
         self.drop_chkbox.setText(" 3)")
-        self.drop_chkbox.setChecked(True)
-        self.drop_chkbox.setStatusTip('3) Do not show SW/SL/SM parts listed in the drop list (go to "settings" to modify this list).')
+        self.drop_chkbox.setChecked(False)
+        self.drop_chkbox.setStatusTip('3) Ignore drop list settings (See File > Settings > drop list).')
         toolbar.addWidget(self.drop_chkbox)
 
         fileopen_action = QAction(qta.icon("ei.folder-open", color="#228B22"), '&Open', self)
@@ -368,7 +337,7 @@ class MainWindow(QMainWindow):
 
         if standardflow == True:
             dfs, df, dfsm, msg = bomcheck.bomcheck(files,
-                               d=self.drop_chkbox.isChecked(),
+                               d = not self.drop_chkbox.isChecked(),
                                dbdic = self.dbdic,
                                x=self.dbdic.get('autosave', False),
                                run_bomcheck = self.run_bomcheck,             
@@ -493,7 +462,7 @@ class SettingsDialog(QDialog):
 
         self.setWindowTitle('Settings')
         self.setFixedWidth(450)
-        self.setFixedHeight(500)  # was 150
+        self.setFixedHeight(250)  # was 150
 
         layout = QVBoxLayout()
 
@@ -514,6 +483,7 @@ class SettingsDialog(QDialog):
         hbox1 = QHBoxLayout()
 
         self.decplcs = QComboBox()
+        self.decplcs.setFixedWidth(35)
         self.decplcs.addItems(['0', '1', '2', '3', '4', '5'])
         _decplcs = str(self.dbdic.get('accuracy', 2))
         self.decplcs.setCurrentText(_decplcs)
@@ -570,16 +540,18 @@ class SettingsDialog(QDialog):
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
 
-        ## added 2/23/22
-        cfgpathname_label = QLabel()
-        cfgpathname_label.setText('pathname of bomcheck.cfg file')
-        layout.addWidget(cfgpathname_label)
-
-        self.cfgpathname_input = QTextEdit()
-        self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg  (note: program reload required)')
-        if 'cfgpathname' in self.dbdic:
-            self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
-        layout.addWidget(self.cfgpathname_input)
+# =============================================================================
+#         ## added 2/23/22
+#         cfgpathname_label = QLabel()
+#         cfgpathname_label.setText('pathname of bomcheck.cfg file')
+#         layout.addWidget(cfgpathname_label)
+# 
+#         self.cfgpathname_input = QTextEdit()
+#         self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg  (note: program reload required)')
+#         if 'cfgpathname' in self.dbdic:
+#             self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
+#         layout.addWidget(self.cfgpathname_input) 
+# =============================================================================
 
         self.QBtnOK = QPushButton('text-align:center')
         self.QBtnOK.setText("OK")
@@ -864,8 +836,6 @@ class DFwindow(QDialog):
         self.columnLabels = self.df.columns
         model = DFmodel(self.df, self)
         
-
-
         self.view = QTableView(self)
         self.view.setModel(model)
         self.view.setShowGrid(False)
@@ -880,11 +850,8 @@ class DFwindow(QDialog):
                             | Qt.WindowMaximizeButtonHint
                             | Qt.WindowCloseButtonHint)
 
-        self.buttonPrint = QPushButton('&Print', self)
-        self.buttonPrint.setShortcut('Ctrl+P')
-        self.buttonPrint.clicked.connect(self.handlePrint)
-
-        self.buttonPreview = QPushButton('Print Preview', self)
+        self.buttonPreview = QPushButton('&Print', self)
+        self.buttonPreview.setShortcut('Ctrl+P')
         self.buttonPreview.clicked.connect(self.handlePreview)
 
         self.save_as_xlsx = QPushButton('&Export to .xlsx', self)
@@ -896,19 +863,11 @@ class DFwindow(QDialog):
 
         layout = QGridLayout(self)
         layout.addWidget(self.view, 0, 0, 1, 4)
-        layout.addWidget(self.buttonPrint, 1, 0)
+        #layout.addWidget(self.buttonPrint, 1, 0)
         layout.addWidget(self.buttonPreview, 1, 1)
         layout.addWidget(self.save_as_xlsx, 1, 2)
         layout.addWidget(buttonBox, 1, 3)
-
-    def handlePrint(self):
-        printer = QtPrintSupport.QPrinter()
-        printer.setPaperSize(printer.Letter)
-        printer.setOrientation(printer.Landscape)
-        dialog = QtPrintSupport.QPrintDialog(printer, self)
-        if dialog.exec_() == QDialog.Accepted:
-            self.handlePaintRequest(dialog.printer())
-
+        
     def handlePreview(self):
         printer = QtPrintSupport.QPrinter()
         printer.setPaperSize(printer.Letter)
@@ -947,6 +906,13 @@ class DFwindow(QDialog):
         document.print_(printer)
       
     def save_xlsx (self): 
+        if 'alt\nqty' in self.df_xlsx.columns:
+            model = self.view.model()
+            altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty') + len(self.df_xlsx.index[0])
+            altqtys = []
+            for i in range(self.df_xlsx.shape[0]):
+                altqtys.append(model.item(i, altqty_column_num))
+            self.df_xlsx['alt\nqty'] = altqtys
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
         export2xlsx(filename, self.df_xlsx, run_bomcheck)
@@ -965,20 +931,39 @@ class DFmodel(QAbstractTableModel):
     def columnCount(self, parent=None):
         return self._data.shape[1]
 
-    def data(self, index, role=Qt.DisplayRole):
-        if index.isValid():
-            if role == Qt.DisplayRole:
-                return str(self._data.iloc[index.row(), index.column()])
-        return None
-
-    def headerData(self, col, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self._data.columns[col]
-        return None
-
     def item(self, row, col):
-        return str(self._data.iat[row, col])
+        return str(self._data.iat[row, col]) 
 
+    # methods below added 11/7/2025.  Reference: https://www.pythonguis.com/faq/qtableview-cell-edit/
+    
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            value = self._data.iloc[index.row(), index.column()]
+            return str(value)
+
+    def flags(self, index): 
+        if not index.isValid():
+            return Qt.ItemIsEnabled
+            
+        return super().flags(index) | Qt.ItemIsEditable  # add editable flag. 
+    
+    def headerData(self, section, orientation, role):
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._data.columns[section])
+
+            if orientation == Qt.Vertical:
+                return str(self._data.index[section] + 2)
+
+    def setData(self, index, value, role):
+        if role == Qt.EditRole:
+            # Set the value into the frame.
+            self._data.iloc[index.row(), index.column()] = value
+            return True
+
+        return False    
+    
 
 def merge_index(df):
     ''' This function will, first, take a pandas dataframe, df, whose index
@@ -1041,6 +1026,7 @@ class TableWidget(QTableWidget):
         super().__init__()
         self.BOMtype = BOMtype
         self.df = df
+              
         #self.setStyleSheet('font-size: 35px;')
         #ref: https://www.w3.org/TR/SVG11/types.html#ColorKeywords
         if BOMtype=='sw':
@@ -1144,12 +1130,13 @@ class DFEditor(QDialog):
     def __init__(self, df, BOMtype, parent=None):
         super().__init__(parent)
         self.df = df
+        self.df_xlsx = df.copy(deep=True)  # make a copy.  This will be used to save to an txt file   
         mainLayout = QVBoxLayout()
         df.reset_index(inplace=True)
         self.table = TableWidget(df, BOMtype)
         mainLayout.addWidget(self.table)
 
-        button_export = QPushButton('Export to txt file')
+        button_export = QPushButton('Export to .xlsx')
         #button_export.setStyleSheet('font-size: 30px')
         button_export.clicked.connect(self.save_xlsx)
         mainLayout.addWidget(button_export)
@@ -1161,16 +1148,13 @@ class DFEditor(QDialog):
                             | Qt.WindowMinimizeButtonHint
                             | Qt.WindowMaximizeButtonHint
                             | Qt.WindowCloseButtonHint)
-
-    def save_xlsx(self):
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter="txt (*.txt)",
-                                    options=QFileDialog.DontConfirmOverwrite)
-        dirname, f = os.path.split(filename)
-        f, _ = os.path.splitext(f)
-        filename = os.path.join(dirname, f+'.txt')
-        self.df.to_csv(filename, sep='\t', index=False)
-
-
+       
+    def save_xlsx (self): 
+        filter = "Excel (*.xlsx)" 
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
+        export2xlsx(filename, self.df_xlsx, True)
+                
+        
 def showTextFile(filelst):
     '''
     This function under development

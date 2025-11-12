@@ -188,11 +188,7 @@ class MainWindow(QMainWindow):
         help_action.setShortcut(QKeySequence.HelpContents)
         help_action.triggered.connect(self._help)
         help_menu.addAction(help_action)
-
-        helpgui_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'bomcheckgui help', self)   # was fa.question, then was fa6.hand-point-right
-        helpgui_action.triggered.connect(self._helpgui)
-        help_menu.addAction(helpgui_action)
-        
+       
         helpslow_action = QAction(qta.icon("ei.question-sign", color="#228B22"), 'slow moving help', self)   # was fa.question, then was fa6.hand-point-right
         helpslow_action.triggered.connect(self._helpslow)
         help_menu.addAction(helpslow_action)
@@ -399,9 +395,6 @@ class MainWindow(QMainWindow):
         # self.dbdic sent so that dictionnary key 'cfgpathname', containing location
         # of bomcheck.cfg file, is sent to function bomcheck.open_help_webpage
 
-    def _helpgui(self):
-        bomcheck.view_help('bomcheckgui_help', 'master', dbdic=self.dbdic)  # version here is the bomcheckgui version
-        
     def _helpslow(self):
         bomcheck.view_help('slowmoving_help', 'master', dbdic=self.dbdic)         
 

@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '2.2'
+__version__ = '2.3'
 __author__ = 'Ken Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -576,8 +576,8 @@ class SettingsDialog(QDialog):
                 self.dbdic['udrop'] = drp
                 excep = self.exceptions_input.toPlainText().replace('"', '').replace("'", "")
                 self.dbdic['uexceptions'] = excep
-                cfgpn = self.cfgpathname_input.toPlainText()
-                self.dbdic['cfgpathname'] = cfgpn
+                #cfgpn = self.cfgpathname_input.toPlainText()
+                #self.dbdic['cfgpathname'] = cfgpn
 
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()

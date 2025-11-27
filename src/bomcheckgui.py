@@ -9,7 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
-__version__ = '2.3'
+__version__ = '2.4'
 __author__ = 'Ken Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -533,19 +533,6 @@ class SettingsDialog(QDialog):
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
 
-# =============================================================================
-#         ## added 2/23/22
-#         cfgpathname_label = QLabel()
-#         cfgpathname_label.setText('pathname of bomcheck.cfg file')
-#         layout.addWidget(cfgpathname_label)
-# 
-#         self.cfgpathname_input = QTextEdit()
-#         self.cfgpathname_input.setPlaceholderText('e.g.: C:\\Users\\Documents\\bomcheck.cfg  (note: program reload required)')
-#         if 'cfgpathname' in self.dbdic:
-#             self.cfgpathname_input.setPlainText(self.dbdic.get('cfgpathname', ''))
-#         layout.addWidget(self.cfgpathname_input) 
-# =============================================================================
-
         self.QBtnOK = QPushButton('text-align:center')
         self.QBtnOK.setText("OK")
         self.QBtnOK.setMaximumWidth(75)
@@ -576,8 +563,6 @@ class SettingsDialog(QDialog):
                 self.dbdic['udrop'] = drp
                 excep = self.exceptions_input.toPlainText().replace('"', '').replace("'", "")
                 self.dbdic['uexceptions'] = excep
-                #cfgpn = self.cfgpathname_input.toPlainText()
-                #self.dbdic['cfgpathname'] = cfgpn
 
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()
@@ -847,19 +832,28 @@ class DFwindow(QDialog):
         self.buttonPreview.setShortcut('Ctrl+P')
         self.buttonPreview.clicked.connect(self.handlePreview)
 
-        self.save_as_xlsx = QPushButton('&Export to .xlsx', self)
+        self.save_as_xlsx = QPushButton('&Export to Excel', self)
         self.save_as_xlsx.setShortcut('Ctrl+S')
         self.save_as_xlsx.clicked.connect(self.save_xlsx)
+        
+        if not run_bomcheck:
+            self.save_as_xlsx_short = QPushButton('Export shortened\nlist to Excel', self)
+            self.save_as_xlsx_short.clicked.connect(self.save_xlsx_short)
+            i = 1
+        else:
+            i = 0
         
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
         buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.reject)
 
         layout = QGridLayout(self)
-        layout.addWidget(self.view, 0, 0, 1, 4)
+        layout.addWidget(self.view, 0, 0, 1, 4+i)
         #layout.addWidget(self.buttonPrint, 1, 0)
         layout.addWidget(self.buttonPreview, 1, 1)
         layout.addWidget(self.save_as_xlsx, 1, 2)
-        layout.addWidget(buttonBox, 1, 3)
+        if not run_bomcheck:
+            layout.addWidget(self.save_as_xlsx_short, 1, 3)
+        layout.addWidget(buttonBox, 1, 3+i)
         
     def handlePreview(self):
         printer = QtPrintSupport.QPrinter()
@@ -909,6 +903,18 @@ class DFwindow(QDialog):
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
         export2xlsx(filename, self.df_xlsx, run_bomcheck)
+        
+    def save_xlsx_short (self): 
+        if 'alt\nqty' in self.df_xlsx.columns:
+            model = self.view.model()
+            altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty') + len(self.df_xlsx.index[0])
+            altqtys = []
+            for i in range(self.df_xlsx.shape[0]):
+                altqtys.append(model.item(i, altqty_column_num))
+            self.df_xlsx['alt\nqty'] = altqtys
+        filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
+        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
+        export2xlsx(filename, self.df_xlsx, run_bomcheck)    
         
 
 class DFmodel(QAbstractTableModel):
@@ -991,15 +997,15 @@ def merge_index(df):
         df.reset_index(inplace=True)
     
     # Eliminate duplicate strings in first column.  If a sm parts dataframe,
-    # eliminate corresponding values in the 'descrip sw/sl' and 'cost' columns.
+    # eliminate corresponding values in the 'description' and 'cost' columns.
     s = df.iloc[:, 0].copy()
     is_duplicated = df.iloc[:, 0].duplicated()
     df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated
     filter = s == df.iloc[:, 0]
-    if 'descrip sw/sl' in df.columns:
-        df['descrip sw/sl'] = df['descrip sw/sl'] * filter
-    if 'cost_' in df.columns:
-        df['cost_'] = df['cost_'] * filter
+    if 'DESCRIPTION' in df.columns:
+        df['DESCRIPTION'] = df['DESCRIPTION'] * filter
+    if 'COST' in df.columns:
+        df['COST'] = df['COST'] * filter
     
     return df
 

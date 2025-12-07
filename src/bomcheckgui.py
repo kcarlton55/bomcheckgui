@@ -9,6 +9,7 @@ A graphical user interface for the bomcheck.py program.
 
 """
 
+
 __version__ = '2.4'
 __author__ = 'Ken Carlton'
 
@@ -222,8 +223,8 @@ class MainWindow(QMainWindow):
             directory = self.dbdic['folder']  # added 6/16/25
         except:
             directory = str(Path.cwd())
-        filter_mask = "BOMs (*_sw.xlsx *_sl.xlsx *_sw.csv *_sm.xlsx);;All files (*.*)"
-        initialfilter = "Excel files (*_sw.xlsx *_sl.xlsx *_sm.xlsx)"
+        filter_mask = "BOMs (*_sw.xlsx *_sw.xls *_sl.xlsx *_sl.xls *_sw.csv *_sm.xlsx);;All files (*.*)"
+        initialfilter = "Excel files (*_sw.xlsx *_.sw.xls *_sl.xlsx *_sl.xls *_sm.xlsx *_sm.xls)"
         filenames = QFileDialog.getOpenFileNames(self,
             caption, directory, filter_mask, initialfilter)[0]
 
@@ -383,7 +384,7 @@ class MainWindow(QMainWindow):
             df_window.show()
         if 'DataFrame' in str(type(dfsm)) and not self.run_bomcheck:
             df_window = DFwindow(dfsm, self)
-            df_window.resize(1125, 800)         
+            df_window.resize(1150, 800)         
             df_window.setWindowTitle('Slow Moving parts comparison')
             df_window.show()
 
@@ -843,8 +844,8 @@ class DFwindow(QDialog):
         else:
             i = 0
         
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.reject)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
+        buttonBox.button(QDialogButtonBox.Close).clicked.connect(self.reject)
 
         layout = QGridLayout(self)
         layout.addWidget(self.view, 0, 0, 1, 4+i)
@@ -904,17 +905,23 @@ class DFwindow(QDialog):
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
         export2xlsx(filename, self.df_xlsx, run_bomcheck)
         
-    def save_xlsx_short (self): 
-        if 'alt\nqty' in self.df_xlsx.columns:
-            model = self.view.model()
-            altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty') + len(self.df_xlsx.index[0])
-            altqtys = []
-            for i in range(self.df_xlsx.shape[0]):
-                altqtys.append(model.item(i, altqty_column_num))
-            self.df_xlsx['alt\nqty'] = altqtys
+    def save_xlsx_short (self):  
+        model = self.view.model()
+        altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty') + len(self.df_xlsx.index[0])
+        altqtys = []
+        for i in range(self.df_xlsx.shape[0]):
+            altqtys.append(model.item(i, altqty_column_num))
+        self.df_xlsx['alt\nqty'] = altqtys
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
-        export2xlsx(filename, self.df_xlsx, run_bomcheck)    
+        df_short =  self.df_xlsx[self.df_xlsx['alt\nqty'].str.strip() != '']
+        if df_short.shape[0] > 0:
+            filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
+            export2xlsx(filename, df_short, run_bomcheck) 
+        else:
+            print('Cannot export.  Values in "alt qty" column required.')
+            msg = 'Cannot export.  Values in "alt qty" column required.'
+            msgtitle = 'Information'
+            message(msg, msgtitle, msgtype='Information', showButtons=False)
         
 
 class DFmodel(QAbstractTableModel):

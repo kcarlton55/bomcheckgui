@@ -126,12 +126,12 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(self.similarity_filter_input)
 
         age_filter_label = QLabel()
-        age_filter_label.setText('    age > ')
+        age_filter_label.setText('    last used > ')
         age_filter_label.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
         toolbar.addWidget(age_filter_label)
 
         self.age_filter_input = QLineEdit()
-        self.age_filter_input.setText('90')
+        self.age_filter_input.setText('0')
         self.age_filter_input.setFixedWidth(35)
         self.age_filter_input.setAlignment(Qt.AlignRight)
         self.age_filter_input.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
@@ -384,7 +384,7 @@ class MainWindow(QMainWindow):
             df_window.show()
         if 'DataFrame' in str(type(dfsm)) and not self.run_bomcheck:
             df_window = DFwindow(dfsm, self)
-            df_window.resize(1150, 800)         
+            df_window.resize(1200, 800)         
             df_window.setWindowTitle('Slow Moving parts comparison')
             df_window.show()
 

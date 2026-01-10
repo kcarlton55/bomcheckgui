@@ -10,7 +10,7 @@ A graphical user interface for the bomcheck.py program.
 """
 
 
-__version__ = '2.4'
+__version__ = '2.5'
 __author__ = 'Ken Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -456,7 +456,7 @@ class SettingsDialog(QDialog):
 
         self.setWindowTitle('Settings')
         self.setFixedWidth(450)
-        self.setFixedHeight(250)  # was 150
+        self.setFixedHeight(450)  # was 150
 
         layout = QVBoxLayout()
 
@@ -533,6 +533,38 @@ class SettingsDialog(QDialog):
         if 'uexceptions' in self.dbdic:
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
+        
+        prod_folder_label = QLabel()
+        prod_folder_label.setText('Production folder (Excel "short" list of sm parts stored here.):')
+        layout.addWidget(prod_folder_label)
+        
+        self.prod_folder_input = QTextEdit()
+        self.prod_folder_input.setPlaceholderText('C:\\path_to_folder\\')
+        if 'prod_folder' in self.dbdic:
+            self.prod_folder_input.setPlainText(self.dbdic.get('prod_folder', ''))
+        layout.addWidget(self.prod_folder_input)
+        
+        proj_folder_label = QLabel()
+        proj_folder_label.setText('Projects folders (Excel "long" list of sm parts stored here.):')
+        layout.addWidget(proj_folder_label)
+        
+        self.proj_folder_input = QTextEdit()
+        self.proj_folder_input.setPlaceholderText('C:\\path_to_folder1\\2025\\, C:\\path_to_folder2\\2026\\')
+        if 'proj_folder' in self.dbdic:
+            self.proj_folder_input.setPlainText(self.dbdic.get('proj_folder', ''))
+        layout.addWidget(self.proj_folder_input)
+        
+        
+        
+        self.autosave_chkbox = QCheckBox("Auto save Excel files to Production and Projects folders")
+        _bool = self.dbdic.get('autosave', True)
+        self.autosave_chkbox.setChecked(_bool)
+        layout.addWidget(self.autosave_chkbox)
+        
+        
+        
+        
+        
 
         self.QBtnOK = QPushButton('text-align:center')
         self.QBtnOK.setText("OK")
@@ -560,14 +592,25 @@ class SettingsDialog(QDialog):
                 else:
                     self.dbdic['mtltest'] = False
 
-                drp = self.drop_input.toPlainText().replace('"', '').replace("'", "")
+                drp = self.drop_input.toPlainText().replace('"', '').replace("'", "").replace('\n', '')
                 self.dbdic['udrop'] = drp
-                excep = self.exceptions_input.toPlainText().replace('"', '').replace("'", "")
+                excep = self.exceptions_input.toPlainText().replace('"', '').replace("'", "").replace('\n', '')
                 self.dbdic['uexceptions'] = excep
+                
+                pd_folder = self.prod_folder_input.toPlainText()
+                self.dbdic['prod_folder'] = pd_folder
+                pj_folder = self.proj_folder_input.toPlainText().replace('"', '').replace("'", "").replace('\n', '')
+                self.dbdic['proj_folder'] = pj_folder
+                
 
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()
                 self.dbdic['to_um'] = self.slum.currentText()
+                
+                if self.autosave_chkbox.isChecked():
+                    self.dbdic['autosave'] = True
+                else:
+                    self.dbdic['autosave'] = False
 
                 file.seek(0)
                 file.write(str(self.dbdic))
@@ -894,26 +937,26 @@ class DFwindow(QDialog):
         document.print_(printer)
       
     def save_xlsx (self): 
-        if 'alt\nqty' in self.df_xlsx.columns:
+        if 'alt\nqty\nused' in self.df_xlsx.columns:
             model = self.view.model()
-            altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty') + len(self.df_xlsx.index[0])
+            altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty\nused') + len(self.df_xlsx.index[0])
             altqtys = []
             for i in range(self.df_xlsx.shape[0]):
                 altqtys.append(model.item(i, altqty_column_num))
-            self.df_xlsx['alt\nqty'] = altqtys
+            self.df_xlsx['alt\nqty\nused'] = altqtys
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
         filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
         export2xlsx(filename, self.df_xlsx, run_bomcheck)
         
     def save_xlsx_short (self):  
         model = self.view.model()
-        altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty') + len(self.df_xlsx.index[0])
+        altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty\nused') + len(self.df_xlsx.index[0])
         altqtys = []
         for i in range(self.df_xlsx.shape[0]):
             altqtys.append(model.item(i, altqty_column_num))
-        self.df_xlsx['alt\nqty'] = altqtys
+        self.df_xlsx['alt\nqty\nused'] = altqtys
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
-        df_short =  self.df_xlsx[self.df_xlsx['alt\nqty'].str.strip() != '']
+        df_short =  self.df_xlsx[self.df_xlsx['alt\nqty\nused'].str.strip() != '']
         if df_short.shape[0] > 0:
             filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
             export2xlsx(filename, df_short, run_bomcheck) 

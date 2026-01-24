@@ -13,17 +13,20 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '2.5'
 __author__ = 'Ken Carlton'
 
-#import pdb # use with pdb.set_trace()
+import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
 sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\\src')
 sys.path.insert(0, 'C:\\Users\\a90003183\\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
-import bomcheck
 import qtawesome as qta  # I did use this, but problems with when using python 3.8
+import bomcheck
 import os.path
 import requests
+from datetime import date
+import warnings
+import pandas as pd
 from pathlib import Path
 from bomcheck import export2xlsx
 from PyQt5 import (QtPrintSupport)
@@ -42,7 +45,9 @@ printStrs = []
 run_bomcheck = True  # this is a global variable used in merge_index(), MainWindow's execute_search_sm and execute_bomcheck functions
 
 class MainWindow(QMainWindow):
-
+    
+    global files
+    
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setWindowIcon(QIcon('check-mark.png'))
@@ -60,7 +65,9 @@ class MainWindow(QMainWindow):
             msgtitle = 'Warning'
             message(msg, msgtitle, msgtype='Warning', showButtons=False)
             self.dbdic = {'udrop': '3*-025', 'uexceptions': '', 
-                          'folder': '', 'file2save2': 'bomcheck'}
+                          'folder': '', 'file2save2': 'bomcheck',
+                          'prod_folder': None, 'proj_folder': None,
+                          'eng_planner': None}
             self.configdb = ''
 
         # Check for later software version.  If newer version found, inform user.
@@ -290,7 +297,7 @@ class MainWindow(QMainWindow):
         self.execute()
 
     def execute(self):
-        global printStrs, standardflow
+        global printStrs, standardflow, files
 
         try:
             with open(self.configdb, 'r+') as file:
@@ -336,7 +343,6 @@ class MainWindow(QMainWindow):
             dfs, df, dfsm, msg = bomcheck.bomcheck(files,
                                d = not self.drop_chkbox.isChecked(),
                                dbdic = self.dbdic,
-                               x=self.dbdic.get('autosave', False),
                                run_bomcheck = self.run_bomcheck,             
                                filter_pn = self.pn_filter_input.text(),
                                similar = self.similarity_filter_input.text(),
@@ -549,17 +555,26 @@ class SettingsDialog(QDialog):
         layout.addWidget(proj_folder_label)
         
         self.proj_folder_input = QTextEdit()
-        self.proj_folder_input.setPlaceholderText('C:\\path_to_folder1\\2025\\, C:\\path_to_folder2\\2026\\')
+        self.proj_folder_input.setPlaceholderText('C:\\folderpath\\2025\\, C:\\folderpath\\2026\\')
         if 'proj_folder' in self.dbdic:
             self.proj_folder_input.setPlainText(self.dbdic.get('proj_folder', ''))
         layout.addWidget(self.proj_folder_input)
         
         
         
-        self.autosave_chkbox = QCheckBox("Auto save Excel files to Production and Projects folders")
-        _bool = self.dbdic.get('autosave', True)
-        self.autosave_chkbox.setChecked(_bool)
-        layout.addWidget(self.autosave_chkbox)
+        eng_planner_label = QLabel()
+        eng_planner_label.setText('Location of file "Engineering Planner.xlsm"')
+        layout.addWidget(eng_planner_label)
+        
+        self.eng_planner_input = QTextEdit()
+        self.eng_planner_input.setPlaceholderText('C:\\folderpath\\Engineering Planner.xlsm')
+        if 'eng_planner' in self.dbdic:
+            self.eng_planner_input.setPlainText(self.dbdic.get('eng_planner', ''))
+        layout.addWidget(self.eng_planner_input)
+        
+        
+        
+
         
         
         
@@ -601,17 +616,13 @@ class SettingsDialog(QDialog):
                 self.dbdic['prod_folder'] = pd_folder
                 pj_folder = self.proj_folder_input.toPlainText().replace('"', '').replace("'", "").replace('\n', '')
                 self.dbdic['proj_folder'] = pj_folder
-                
-
+                eng_planner = self.eng_planner_input.toPlainText()
+                self.dbdic['eng_planner'] = eng_planner
+                     
                 self.dbdic['accuracy'] = int(self.decplcs.currentText())
                 self.dbdic['from_um'] = self.swum.currentText()
                 self.dbdic['to_um'] = self.slum.currentText()
                 
-                if self.autosave_chkbox.isChecked():
-                    self.dbdic['autosave'] = True
-                else:
-                    self.dbdic['autosave'] = False
-
                 file.seek(0)
                 file.write(str(self.dbdic))
                 file.truncate()
@@ -850,6 +861,7 @@ class DFwindow(QDialog):
     ''' Displays a Pandas DataFrame in a GUI window and shows three buttons
         below it: Print, Print Preview, and Save as .xlsx.
     '''
+    
     def __init__(self, df, parent=None):
         super(DFwindow, self).__init__(parent)
         
@@ -945,8 +957,22 @@ class DFwindow(QDialog):
                 altqtys.append(model.item(i, altqty_column_num))
             self.df_xlsx['alt\nqty\nused'] = altqtys
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
-        filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
-        export2xlsx(filename, self.df_xlsx, run_bomcheck)
+        
+        try:
+            if run_bomcheck:
+                default_name = get_filename('bomcheck', files)
+            else:
+                default_name = get_filename('projects', files)
+            filename, _ = QFileDialog.getSaveFileName(self, 'Save File', default_name, filter=filter)
+            export2xlsx(filename, self.df_xlsx, run_bomcheck)
+            
+        except Exception as e:
+            print('Error within bomcheckgui at function "save_xlsx".')
+            print(e)
+            msg = str(e)
+            msgtitle = 'Error while trying to save file'
+            message(msg, msgtitle)
+            
         
     def save_xlsx_short (self):  
         model = self.view.model()
@@ -957,15 +983,24 @@ class DFwindow(QDialog):
         self.df_xlsx['alt\nqty\nused'] = altqtys
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
         df_short =  self.df_xlsx[self.df_xlsx['alt\nqty\nused'].str.strip() != '']
-        if df_short.shape[0] > 0:
-            filename, _ = QFileDialog.getSaveFileName(self, 'Save File', filter=filter)
-            export2xlsx(filename, df_short, run_bomcheck) 
-        else:
-            print('Cannot export.  Values in "alt qty" column required.')
-            msg = 'Cannot export.  Values in "alt qty" column required.'
-            msgtitle = 'Information'
-            message(msg, msgtitle, msgtype='Information', showButtons=False)
-        
+
+     
+        try:
+            default_name = get_filename('production', files)
+            if df_short.shape[0] > 0:
+                filename, _ = QFileDialog.getSaveFileName(self, 'Save File', default_name, filter=filter)
+                export2xlsx(filename, df_short, run_bomcheck) 
+            else:
+                print('Cannot export.  Values in "alt qty used" column required.')
+                msg = 'Cannot export.  Values in "alt qty used" column required.'
+                msgtitle = 'Information'
+                message(msg, msgtitle, msgtype='Information', showButtons=False)   
+        except Exception as e:
+            print('Error within bomcheckgui at function "save_xlsx".')
+            print(e)
+            msg = str(e)
+            msgtitle = 'Error while trying to save file'
+            message(msg, msgtitle)
 
 class DFmodel(QAbstractTableModel):
     ''' Enables a Pandas DataFrame to be able to be shown in a GUI window.
@@ -1328,6 +1363,130 @@ def latest_version_msg():
         return ''
     except requests.ConnectionError:  # No internet connection
         pass
+
+
+def get_filename(kind, files):
+    # from dbdic looking to get values of keys 'prod_folder', 'proj_folder',
+    # and 'eng_planner'.  The first values is s folder, the second a list of
+    # folders (each separated by a comma), and the thirt the path name of the
+    # file "Engineering Planner.xlsx".    
+    try:
+        configdb = get_configfn()
+        with open(configdb, 'r') as file:
+            x = file.read()
+        dbdic = ast.literal_eval(x)
+    except Exception as e:
+        msg = ("Error 901:\n\n"
+               "Unable to open config.txt file which allows the program\n"
+               "to remember user settings.  Default settings will be used.\n"
+               "Otherwise the program will run as normal.\n\n" + str(e))
+        print(msg)
+        #msgtitle = 'Warning'
+        #message(msg, msgtitle, msgtype='Warning', showButtons=False)
+        dbdic = {'udrop': '3*-025', 'uexceptions': '', 
+                      'folder': '', 'file2save2': 'bomcheck',
+                      'prod_folder': None, 'proj_folder': None,
+                      'eng_planner': None}
+        configdb = ''
+    production_folder = dbdic.get('prod_folder', None)
+    system_folders =  dbdic.get('proj_folder', None)
+    eng_planner =  dbdic.get('eng_planner', None)
+
+    # create two lists, one for sw files, the other sl.  Sort the lists pushing
+    # to the back of the lists pns with the fifth characater being a -,
+    # e.g. 3818-UNV2-000, and 6890-064545-2.  These are subassemblies and not
+    # system part numbers.
+    sw_files = []
+    sl_files = []       
+    for f in files:
+        _ , fn = os.path.split(f)  
+        if '_sw' in fn.lower():
+            fn = fn.split('_')[0]
+            if fn[4] == '-':
+                sw_files.append(fn)
+            else:
+                sw_files.insert(0, fn)
+        elif '_sl' in fn.lower(): 
+            fn = fn.split('_')[0]
+            if fn[4] == '-':
+                sl_files.append(fn)
+            else:
+                sl_files.insert(0, fn)   
+    # Sort again.  System part nos. most often begin with AC, DV, QS, etc.
+    # Move these to the start of the lists.            
+    sw_files2 = []
+    sl_files2 = []
+    for sw in sw_files:
+        if (sw.startswith('AC') or sw.startswith('DV') or sw.startswith('QS')
+                or sw.startswith('QC') or sw.startswith('SV') or sw.startswith('NR')
+                or sw.startswith('NY') or sw.startswith('ED')):
+            sw_files2.insert(0, sw)
+        else:
+            sw_files2.append(sw)
+    for sl in sl_files:
+        if (sl.startswith('AC') or sw.startswith('DV') or sw.startswith('QS')
+                or sw.startswith('QC') or sw.startswith('SV') or sw.startswith('NR')
+                or sw.startswith('NY') or sw.startswith('ED')):
+            sl_files2.insert(0, sl)
+        else:
+            sl_files2.append(sl)
+            
+    # sl more often than not will contain a system pn.  It's the first choice.
+    if sl_files2:
+        systemNo = sl_files2[0]
+    elif sw_files2:
+        systemNo = sw_files2[0]
+        
+    # import an Excel file that allow system_pn to CO_number pairing        
+    df = pd.read_excel(eng_planner, na_values=[' '], skiprows=3, 
+                       usecols=['Item ', 'CO Number'])   # 'Item ', not 'Item', is the eng_planner Excel file
+    df.columns = df.columns.str.strip()                  # Change 'Item ' to 'Item'
+    df = df.dropna(how='any')
+    CO_dict = dict(zip(df['Item'], df['CO Number']))
+    CO = CO_dict.get(systemNo, 'CO00XXXXXX')
+    
+    def subfunction(system_folders = system_folders):   # this function called when "kind" = projects or bomcheck
+        # Create a dic that looks like: 
+        # {'C:\\...\\Projects folder\\2025\\':
+        #     ['CO00118889 Edwards - ATLAS COPCO Rebrand', ...], 
+        # 'C:\\...\\Projects folder\\2026':
+        #     ['CO00120400 Edwards - ATLAS COPCO Rebrand', ...]}             
+        system_folders = system_folders.replace('\n', '').split(',')  # creates a list object
+        system_folders = [s.strip() for s in system_folders]  # remove any leading or trailing spaces from items in the list
+        system_folders_dic = {}
+        for s in system_folders:
+            folders = os.listdir(s)   # obtain a list of dirs in each system folder, e.g. in 2025 folder, 2026, etc.
+            system_folders_dic[s] = folders
+        flag = False
+        for key in system_folders_dic:
+            for f in system_folders_dic[key]:
+                if CO in f:
+                    folder = os.path.join(key, f, 'Engineering')          
+                    flag = True
+                    break
+        if flag:
+            if not os.path.exists(folder):
+                os.mkdir(folder)   # Make and "Engineering" folder if it does not already exist.
+        else:
+            folder = key
+        return folder, systemNo + '_' + CO
+    
+    print('ccc')
+    #pdb.set_trace()
+    
+    
+    if kind == 'production':
+        filename = os.path.join(production_folder, systemNo + '_' + CO + '_' + str(date.today())) 
+    elif kind == 'projects':
+        folder, pn_CO = subfunction()      
+        filename = os.path.join(folder, pn_CO + '_longlist_' + str(date.today()))
+    elif kind == 'bomcheck':
+        folder, pn_CO = subfunction()      
+        filename = os.path.join(folder, pn_CO + '_bomcheck_' + str(date.today()) )
+    
+    return filename
+
+
 
 
 app = QApplication(sys.argv)

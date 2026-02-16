@@ -18,14 +18,13 @@ import ast
 import sys
 import os
 sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
-sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\\src')
-sys.path.insert(0, 'C:\\Users\\a90003183\\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
+#sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\\src')
+#sys.path.insert(0, 'C:\\Users\\a90003183\\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
 import qtawesome as qta  # I did use this, but problems with when using python 3.8
 import bomcheck
 import os.path
 import requests
 from datetime import date
-import warnings
 import pandas as pd
 from pathlib import Path
 from bomcheck import export2xlsx
@@ -133,15 +132,15 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(self.similarity_filter_input)
 
         age_filter_label = QLabel()
-        age_filter_label.setText('    last used > ')
-        age_filter_label.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
+        age_filter_label.setText('    on shelf > ')
+        age_filter_label.setStatusTip('Show only SM part nos. for parts that have "on shelf" age older than this many days.')
         toolbar.addWidget(age_filter_label)
 
         self.age_filter_input = QLineEdit()
         self.age_filter_input.setText('0')
         self.age_filter_input.setFixedWidth(35)
         self.age_filter_input.setAlignment(Qt.AlignRight)
-        self.age_filter_input.setStatusTip('Show only SM part nos. for parts that have "Last Movement" dates older than this many days.')
+        self.age_filter_input.setStatusTip('Show only SM part nos. for parts that have "on shelf" age older than this many days.')
         toolbar.addWidget(self.age_filter_input)
         
         merge_filter_label = QLabel()
@@ -350,7 +349,6 @@ class MainWindow(QMainWindow):
                                show_demand = self.show_demand_chkbox.isChecked(),
                                on_hand = self.onhand_chkbox.isChecked()
                                )
-
             showTextFile(files)
 
         else:
@@ -540,18 +538,20 @@ class SettingsDialog(QDialog):
             self.exceptions_input.setPlainText(self.dbdic.get('uexceptions', ''))
         layout.addWidget(self.exceptions_input)
         
-        prod_folder_label = QLabel()
-        prod_folder_label.setText('Production folder (Excel "short" list of sm parts stored here.):')
-        layout.addWidget(prod_folder_label)
-        
-        self.prod_folder_input = QTextEdit()
-        self.prod_folder_input.setPlaceholderText('C:\\path_to_folder\\')
-        if 'prod_folder' in self.dbdic:
-            self.prod_folder_input.setPlainText(self.dbdic.get('prod_folder', ''))
-        layout.addWidget(self.prod_folder_input)
+# =============================================================================
+#         prod_folder_label = QLabel()
+#         prod_folder_label.setText('Production folder (Excel "short" list of sm parts stored here.):')
+#         layout.addWidget(prod_folder_label)
+#
+#         self.prod_folder_input = QTextEdit()
+#         self.prod_folder_input.setPlaceholderText('C:\\path_to_folder\\')
+#         if 'prod_folder' in self.dbdic:
+#             self.prod_folder_input.setPlainText(self.dbdic.get('prod_folder', ''))
+#         layout.addWidget(self.prod_folder_input)
+# =============================================================================
         
         proj_folder_label = QLabel()
-        proj_folder_label.setText('Projects folders (Excel "long" list of sm parts stored here.):')
+        proj_folder_label.setText('Projects folders (Record of sm parts stored here.):')
         layout.addWidget(proj_folder_label)
         
         self.proj_folder_input = QTextEdit()
@@ -612,8 +612,10 @@ class SettingsDialog(QDialog):
                 excep = self.exceptions_input.toPlainText().replace('"', '').replace("'", "").replace('\n', '')
                 self.dbdic['uexceptions'] = excep
                 
-                pd_folder = self.prod_folder_input.toPlainText()
-                self.dbdic['prod_folder'] = pd_folder
+# =============================================================================
+#                 pd_folder = self.prod_folder_input.toPlainText()
+#                 self.dbdic['prod_folder'] = pd_folder
+# =============================================================================
                 pj_folder = self.proj_folder_input.toPlainText().replace('"', '').replace("'", "").replace('\n', '')
                 self.dbdic['proj_folder'] = pj_folder
                 eng_planner = self.eng_planner_input.toPlainText()
@@ -887,18 +889,18 @@ class DFwindow(QDialog):
         self.buttonPreview = QPushButton('&Print', self)
         self.buttonPreview.setShortcut('Ctrl+P')
         self.buttonPreview.clicked.connect(self.handlePreview)
-
+   
         self.save_as_xlsx = QPushButton('&Export to Excel', self)
         self.save_as_xlsx.setShortcut('Ctrl+S')
-        self.save_as_xlsx.clicked.connect(self.save_xlsx)
-        
+        self.save_as_xlsx.clicked.connect(self.save_xlsx) 
+   
         if not run_bomcheck:
             self.save_as_xlsx_short = QPushButton('Export shortened\nlist to Excel', self)
             self.save_as_xlsx_short.clicked.connect(self.save_xlsx_short)
             i = 1
         else:
             i = 0
-        
+            
         buttonBox = QDialogButtonBox(QDialogButtonBox.Close)
         buttonBox.button(QDialogButtonBox.Close).clicked.connect(self.reject)
 
@@ -965,7 +967,7 @@ class DFwindow(QDialog):
                 default_name = get_filename('projects', files)
             filename, _ = QFileDialog.getSaveFileName(self, 'Save File', default_name, filter=filter)
             export2xlsx(filename, self.df_xlsx, run_bomcheck)
-            
+                        
         except Exception as e:
             print('Error within bomcheckgui at function "save_xlsx".')
             print(e)
@@ -984,7 +986,6 @@ class DFwindow(QDialog):
         filter = "Excel (*.xlsx)" if run_bomcheck else "Excel (*_alts.xlsx)"
         df_short =  self.df_xlsx[self.df_xlsx['alt\nqty\nused'].str.strip() != '']
 
-     
         try:
             default_name = get_filename('production', files)
             if df_short.shape[0] > 0:
@@ -1001,6 +1002,7 @@ class DFwindow(QDialog):
             msg = str(e)
             msgtitle = 'Error while trying to save file'
             message(msg, msgtitle)
+
 
 class DFmodel(QAbstractTableModel):
     ''' Enables a Pandas DataFrame to be able to be shown in a GUI window.
@@ -1469,14 +1471,12 @@ def get_filename(kind, files):
                 os.mkdir(folder)   # Make and "Engineering" folder if it does not already exist.
         else:
             folder = key
-        return folder, systemNo + '_' + CO
-    
-    print('ccc')
-    #pdb.set_trace()
-    
+        return folder, systemNo + '_' + CO    
     
     if kind == 'production':
-        filename = os.path.join(production_folder, systemNo + '_' + CO + '_' + str(date.today())) 
+        # filename = os.path.join(production_folder, systemNo + '_' + CO + '_' + str(date.today())) 
+        folder, pn_CO = subfunction()      
+        filename = os.path.join(folder, pn_CO + '_shortlist_' + str(date.today()))
     elif kind == 'projects':
         folder, pn_CO = subfunction()      
         filename = os.path.join(folder, pn_CO + '_longlist_' + str(date.today()))

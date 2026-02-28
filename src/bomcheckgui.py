@@ -10,7 +10,7 @@ A graphical user interface for the bomcheck.py program.
 """
 
 
-__version__ = '2.5'
+__version__ = '2.6'
 __author__ = 'Ken Carlton'
 
 #import pdb # use with pdb.set_trace()
@@ -571,15 +571,6 @@ class SettingsDialog(QDialog):
         if 'eng_planner' in self.dbdic:
             self.eng_planner_input.setPlainText(self.dbdic.get('eng_planner', ''))
         layout.addWidget(self.eng_planner_input)
-        
-        
-        
-
-        
-        
-        
-        
-        
 
         self.QBtnOK = QPushButton('text-align:center')
         self.QBtnOK.setText("OK")
@@ -1091,6 +1082,8 @@ def merge_index(df):
     filter = s == df.iloc[:, 0]
     if 'DESCRIPTION' in df.columns:
         df['DESCRIPTION'] = df['DESCRIPTION'] * filter
+    if 'QTY\nSW/SL' in df.columns:
+        df['QTY\nSW/SL'] = df['QTY\nSW/SL'] * filter    
     if 'COST' in df.columns:
         df['COST'] = df['COST'] * filter
     

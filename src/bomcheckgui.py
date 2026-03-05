@@ -13,7 +13,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '2.6'
 __author__ = 'Ken Carlton'
 
-#import pdb # use with pdb.set_trace()
+import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -858,8 +858,10 @@ class DFwindow(QDialog):
     def __init__(self, df, parent=None):
         super(DFwindow, self).__init__(parent)
         
-        self.df_xlsx = df.copy(deep=True)  # make a copy.  This will be used to save to an txt file      
+        self.df_xlsx = df.copy(deep=True)  # make a copy.  This will be used to save to an txt file    
+
         self.df = merge_index(df)  # use for disply to user and for printing
+            
         self.columnLabels = self.df.columns
         model = DFmodel(self.df, self)
         
@@ -1070,7 +1072,15 @@ def merge_index(df):
     5                      7215-0200-001
     6  6890-ACV0098372-01  2915-0050-000
     '''
-     
+   
+    
+
+    if len(df.index) == 0:
+        df.insert(0, 'COST', 0)
+        df.insert(0, 'QTY\nSW/SL', 0)
+        df.insert(0, 'DESCRIPTION', 0)
+        return df
+    
     if df.index.values.tolist()[0] != 0:
         df.reset_index(inplace=True)
     

@@ -1094,6 +1094,10 @@ def merge_index(df):
         df['DESCRIPTION'] = df['DESCRIPTION'] * filter
     if 'QTY\nSW/SL' in df.columns:
         df['QTY\nSW/SL'] = df['QTY\nSW/SL'] * filter    
+    if 'QTY\nSW' in df.columns:
+        df['QTY\nSW'] = df['QTY\nSW'] * filter    
+    if 'QTY\nSL' in df.columns:
+        df['QTY\nSL'] = df['QTY\nSL'] * filter   
     if 'COST' in df.columns:
         df['COST'] = df['COST'] * filter
     

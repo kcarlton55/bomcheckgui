@@ -13,7 +13,7 @@ A graphical user interface for the bomcheck.py program.
 __version__ = '2.6'
 __author__ = 'Ken Carlton'
 
-import pdb # use with pdb.set_trace()
+#import pdb # use with pdb.set_trace()
 import ast
 import sys
 import os
@@ -943,7 +943,7 @@ class DFwindow(QDialog):
         printer.setPaperSize(QtPrintSupport.QPrinter.Letter)
         document.print_(printer)
       
-    def save_xlsx (self): 
+    def save_xlsx (self):
         if 'alt\nqty\nused' in self.df_xlsx.columns:
             model = self.view.model()
             altqty_column_num = list(self.df_xlsx.columns).index('alt\nqty\nused') + len(self.df_xlsx.index[0])
@@ -1043,7 +1043,7 @@ class DFmodel(QAbstractTableModel):
 
         return False    
     
-
+    
 def merge_index(df):
     ''' This function will, first, take a pandas dataframe, df, whose index
     values are the assy and item no. colunns, and will merge those into the main
@@ -1071,10 +1071,12 @@ def merge_index(df):
     4                      6652-0025-005
     5                      7215-0200-001
     6  6890-ACV0098372-01  2915-0050-000
-    '''
-   
     
-
+    A similar result will occur when a "slow moving" dataframe is being 
+    manipulated.  In which case the columns 'DESCRIPTION', 'QTY\nSW/SL', etc.
+    will have duplate items hidden.
+    '''
+    
     if len(df.index) == 0:
         df.insert(0, 'COST', 0)
         df.insert(0, 'QTY\nSW/SL', 0)
@@ -1083,24 +1085,15 @@ def merge_index(df):
     
     if df.index.values.tolist()[0] != 0:
         df.reset_index(inplace=True)
-    
-    # Eliminate duplicate strings in first column.  If a sm parts dataframe,
-    # eliminate corresponding values in the 'description' and 'cost' columns.
-    s = df.iloc[:, 0].copy()
+        
+    # Determine which text in the duplicated in the first column, then hide the
+    # duplicated text in that columns and in the columns given in the list of
+    # columns shown below.
     is_duplicated = df.iloc[:, 0].duplicated()
-    df.iloc[:, 0] = df.iloc[:, 0] * ~is_duplicated
-    filter = s == df.iloc[:, 0]
-    if 'DESCRIPTION' in df.columns:
-        df['DESCRIPTION'] = df['DESCRIPTION'] * filter
-    if 'QTY\nSW/SL' in df.columns:
-        df['QTY\nSW/SL'] = df['QTY\nSW/SL'] * filter    
-    if 'QTY\nSW' in df.columns:
-        df['QTY\nSW'] = df['QTY\nSW'] * filter    
-    if 'QTY\nSL' in df.columns:
-        df['QTY\nSL'] = df['QTY\nSL'] * filter   
-    if 'COST' in df.columns:
-        df['COST'] = df['COST'] * filter
-    
+    for x in ['assy', 'PN', 'DESCRIPTION', 'QTY\nSW/SL', 'QTY\nSW', 'QTY\nSL', 'COST']:
+        if x in df.columns:
+            df[x] = df[x].mask(is_duplicated).fillna('')
+            
     return df
 
 
@@ -1378,7 +1371,7 @@ def get_filename(kind, files):
     # from dbdic looking to get values of keys 'prod_folder', 'proj_folder',
     # and 'eng_planner'.  The first values is s folder, the second a list of
     # folders (each separated by a comma), and the thirt the path name of the
-    # file "Engineering Planner.xlsx".    
+    # file "Engineering Planner.xlsx". 
     try:
         configdb = get_configfn()
         with open(configdb, 'r') as file:
@@ -1400,6 +1393,9 @@ def get_filename(kind, files):
     production_folder = dbdic.get('prod_folder', None)
     system_folders =  dbdic.get('proj_folder', None)
     eng_planner =  dbdic.get('eng_planner', None)
+    
+    print('mmm_1406')
+    #pdb.set_trace()
 
     # create two lists, one for sw files, the other sl.  Sort the lists pushing
     # to the back of the lists pns with the fifth characater being a -,
@@ -1421,10 +1417,15 @@ def get_filename(kind, files):
                 sl_files.append(fn)
             else:
                 sl_files.insert(0, fn)   
+    print('ooo')
+
     # Sort again.  System part nos. most often begin with AC, DV, QS, etc.
     # Move these to the start of the lists.            
     sw_files2 = []
     sl_files2 = []
+    
+    
+    
     for sw in sw_files:
         if (sw.startswith('AC') or sw.startswith('DV') or sw.startswith('QS')
                 or sw.startswith('QC') or sw.startswith('SV') or sw.startswith('NR')
@@ -1446,20 +1447,28 @@ def get_filename(kind, files):
     elif sw_files2:
         systemNo = sw_files2[0]
         
-    # import an Excel file that allow system_pn to CO_number pairing        
-    df = pd.read_excel(eng_planner, na_values=[' '], skiprows=3, 
-                       usecols=['Item ', 'CO Number'])   # 'Item ', not 'Item', is the eng_planner Excel file
-    df.columns = df.columns.str.strip()                  # Change 'Item ' to 'Item'
-    df = df.dropna(how='any')
-    CO_dict = dict(zip(df['Item'], df['CO Number']))
-    CO = CO_dict.get(systemNo, 'CO00XXXXXX')
+    # import an Excel file that allow system_pn to CO_number pairing   
+    try:     
+        df = pd.read_excel(eng_planner, na_values=[' '], skiprows=3, 
+                           usecols=['Item ', 'CO Number'])   # 'Item ', not 'Item', is the eng_planner Excel file
+        df.columns = df.columns.str.strip()                  # Change 'Item ' to 'Item'
+        df = df.dropna(how='any')
+        CO_dict = dict(zip(df['Item'], df['CO Number']))
+        CO = CO_dict.get(systemNo, 'CO00######')
+    except:
+        printStr = ('Failed to open up the eng_planner file.  This would have helped\n'
+                    'to find the CO number associated with an assembly number.')
+        print(printStr)
+        CO = 'CO00######'
+        
+    
     
     def subfunction(system_folders = system_folders):   # this function called when "kind" = projects or bomcheck
         # Create a dic that looks like: 
         # {'C:\\...\\Projects folder\\2025\\':
         #     ['CO00118889 Edwards - ATLAS COPCO Rebrand', ...], 
         # 'C:\\...\\Projects folder\\2026':
-        #     ['CO00120400 Edwards - ATLAS COPCO Rebrand', ...]}             
+        #     ['CO00120400 Edwards - ATLAS CO`PCO Rebrand', ...]}          
         system_folders = system_folders.replace('\n', '').split(',')  # creates a list object
         system_folders = [s.strip() for s in system_folders]  # remove any leading or trailing spaces from items in the list
         system_folders_dic = {}
@@ -1481,15 +1490,23 @@ def get_filename(kind, files):
         return folder, systemNo + '_' + CO    
     
     if kind == 'production':
-        # filename = os.path.join(production_folder, systemNo + '_' + CO + '_' + str(date.today())) 
-        folder, pn_CO = subfunction()      
-        filename = os.path.join(folder, pn_CO + '_shortlist_' + str(date.today()))
+        try: 
+            folder, pn_CO = subfunction()      
+            filename = os.path.join(folder, pn_CO + '_shortlist_' + str(date.today()))
+        except:
+            filename = 'shortlist'
     elif kind == 'projects':
-        folder, pn_CO = subfunction()      
-        filename = os.path.join(folder, pn_CO + '_longlist_' + str(date.today()))
+        try:
+            folder, pn_CO = subfunction()      
+            filename = os.path.join(folder, pn_CO + '_longlist_' + str(date.today()))
+        except:
+            filename = 'longlist'
     elif kind == 'bomcheck':
-        folder, pn_CO = subfunction()      
-        filename = os.path.join(folder, pn_CO + '_bomcheck_' + str(date.today()) )
+        try:
+            folder, pn_CO = subfunction()      
+            filename = os.path.join(folder, pn_CO + '_bomcheck_' + str(date.today()) )
+        except:
+            filename = 'bomcheck'
     
     return filename
 

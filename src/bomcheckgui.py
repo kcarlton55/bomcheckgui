@@ -17,9 +17,10 @@ __author__ = 'Ken Carlton'
 import ast
 import sys
 import os
-sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
-sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\\src')
-#sys.path.insert(0, 'C:\\Users\\a90003183\\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
+if any('SPYDER' in name for name in os.environ):  # if spyder is being used for program editing
+    sys.path.insert(0, '/media/sf_shared/projects/bomcheck/src')
+    sys.path.insert(0, 'C:\\Users\\Ken\\Documents\\shared\\projects\\bomcheck\\src')
+    sys.path.insert(0, 'C:\\Users\\a90003183\\OneDrive - ONEVIRTUALOFFICE\\python\\projects\\bomcheck\\src')
 import qtawesome as qta  # I did use this, but problems with when using python 3.8
 import bomcheck
 import os.path
